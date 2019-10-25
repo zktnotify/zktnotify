@@ -80,3 +80,24 @@ func (tag *TimeTagInfos) Today() *TimeTag {
 	}
 	return nil
 }
+
+func WorkingUsers() (users []User, err error) {
+	/*
+		dbSQL := "select u.* from user u, card_time c where c.card_date = ? and"
+		rows, err := x.Rows(User{})
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			user := User{}
+			if err = rows.Scan(&user); err != nil {
+				return nil, err
+			}
+			users = append(users, user)
+		}
+		return users, nil
+	*/
+	return nil, nil
+}

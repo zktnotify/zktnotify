@@ -1,13 +1,14 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
 type User struct {
 	Id            int64
 	Name          string    `xorm:"name"`
-	JobID         string    `xorm:"job_id"`
+	JobID         string    `xorm:"UNIQUE(UQE_USER) NOT NULL 'job_id'"`
 	UserID        uint64    `xorm:"user_id"`
 	Password      string    `xorm:"password"`
 	NotifyURL     string    `xorm:"notify_url"`
@@ -16,6 +17,7 @@ type User struct {
 	CreateUnix    int64     `xorm:"'create_time'"`
 	UpdateTime    time.Time `xorm:"-"`
 	UpdateUnix    int64     `xorm:"'update_time'"`
+	Status        int       `xorm:"status"`
 }
 
 func (u *User) BeforeInsert() {
@@ -33,7 +35,7 @@ func (u *User) BeforeUpdate() {
 }
 
 func GetUser(uid uint64) *User {
-	rows, err := x.Rows(User{UserID: uid})
+	rows, err := x.Rows(User{UserID: uid, Status: 0})
 	if err != nil {
 		return nil
 	}
@@ -50,7 +52,7 @@ func GetUser(uid uint64) *User {
 }
 
 func AllUsers() (users []User, err error) {
-	rows, err := x.Rows(User{})
+	rows, err := x.Where("status==0").Rows(User{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,4 +66,19 @@ func AllUsers() (users []User, err error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (u *User) UpdateUserID() error {
+	user := User{
+		UserID: u.UserID,
+		Status: 0,
+	}
+	affected, err := x.Cols("user_id").Where("job_id=?", u.JobID).Update(&user)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return fmt.Errorf("not found job_id(%d) ", u.JobID)
+	}
+	return nil
 }

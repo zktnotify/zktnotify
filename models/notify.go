@@ -9,7 +9,7 @@ type Notify struct {
 	UserID     uint64    `xorm:"UNIQUE(UQE_NOTIFY) NOT NULL 'user_id'"`
 	CardDate   string    `xorm:"UNIQUE(UQE_NOTIFY) NOT NULL 'card_date'"`
 	CardTime   string    `xorm:"UNIQUE(UQE_NOTIFY) NOT NULL 'card_time'"`
-	CardType   uint64    `xorm:"UNIQUE(UQE_NOTIFY) NOT NULL 'cart_type'"`
+	CardType   uint64    `xorm:"UNIQUE(UQE_NOTIFY) NOT NULL 'card_type'"`
 	Notified   bool      `xorm:"notified"`
 	CreateTime time.Time `xorm:"-"`
 	CreateUnix int64     `xorm:"'create_time'"`
@@ -32,7 +32,7 @@ func (n *Notify) BeforeUpdate() {
 }
 
 func IsNotified(uid uint64, cdate string, ctype uint64) bool {
-	n := Notify{UserID: uid, CardDate: cdate, CardType: ctype}
+	n := Notify{UserID: uid, CardDate: cdate, CardType: ctype, Notified: true}
 	if ok, err := x.Exist(&n); !ok || err != nil {
 		return false
 	}

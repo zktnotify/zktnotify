@@ -35,7 +35,6 @@ func GoFunc(f func() error) chan error {
 }
 
 func actionStartServer(c *cli.Context) error {
-	flog.Info()
 	config.NewConfig()
 
 	logPath := config.Config.LogName()
@@ -45,13 +44,9 @@ func actionStartServer(c *cli.Context) error {
 	}
 
 	if c.Bool("foreground") {
-		flog.Info()
 		config.NewConfig()
-		flog.Info()
 		models.NewEngine()
-		flog.Info()
 		service.Service(context.Background())
-		flog.Info()
 	} else {
 		flog.Info()
 		cmd := exec.Command(os.Args[0], "start", "-f")

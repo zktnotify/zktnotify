@@ -15,6 +15,7 @@ type CardTime struct {
 	CreateUnix  int64     `xorm:"'create_time'"`
 	UpdateTime  time.Time `xorm:"-"`
 	UpdateUnix  int64     `xorm:"'update_time'"`
+	Status      int       `xorm:"status"`
 }
 
 func (c *CardTime) BeforeInsert() {

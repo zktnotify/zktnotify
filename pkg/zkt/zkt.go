@@ -1,12 +1,15 @@
 package zkt
 
 import (
+	"bytes"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/imroc/req"
 	"github.com/leaftree/onoffice/models"
+	"github.com/opesun/goquery"
 )
 
 func Login(url, username, password string) error {
@@ -25,6 +28,35 @@ func Login(url, username, password string) error {
 		return nil
 	}
 	return errors.New(r.String())
+}
+
+func GetUserID(url string) (uid uint64, err error) {
+	r, err := req.Get(url)
+	if err != nil {
+		return uid, err
+	}
+
+	nodes, err := goquery.Parse(bytes.NewBufferString(r.String()))
+	if err != nil {
+		return uid, err
+	}
+
+	next := false
+	nodes.Find("body input").Each(func(i int, s *goquery.Node) {
+		for _, attr := range s.Attr {
+			if attr.Val == "id_self_services" {
+				next = true
+			} else if next == true && attr.Key == "value" {
+				uid, _ = strconv.ParseUint(attr.Val, 10, 64)
+				break
+			}
+		}
+	})
+
+	if uid == 0 {
+		return 0, errors.New("user id not found by url parse")
+	}
+	return uid, nil
 }
 
 func GetTimeTag(url string, uid uint64, start, end time.Time) (_ *models.TimeTagInfos, _ error) {
