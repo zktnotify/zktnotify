@@ -21,6 +21,7 @@ func init() {
 		new(User),
 		new(CardTime),
 		new(Notify),
+		new(Holiday),
 	)
 }
 

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/leaftree/onoffice/models"
@@ -27,28 +29,10 @@ func Service(ctx context.Context) {
 	}()
 
 	for {
-		var tick = 1
-
-		nTime, err := time.ParseInLocation("2006-01-02 15:04:05", time.Now().Format("2006-01-02 ")+config.Config.WorkEnd.NotificationTime, time.Local)
-		if err != nil {
-			log.Println(err)
-			time.Sleep(time.Second)
-			continue
-		}
-
-		dtime := nTime.Unix() - time.Now().Unix()
-		if dtime < -10 {
-			tick = 60
-		} else if dtime <= 5 {
-			tick = 1
-		} else if dtime > 60 {
-			tick = 60
-		} else {
-			tick = 5
-		}
+		duration := sleepDuration()
 
 		select {
-		case <-time.After(time.Duration(tick) * time.Second):
+		case <-time.After(time.Duration(duration) * time.Second):
 			if err := CardTimeNotification(RetrieveWorkingUsers()); err != nil {
 				log.Println(err)
 			}
@@ -105,9 +89,6 @@ func RetrieveCardTime(users []models.User) error {
 			}
 
 			if !cardTimeMatched(cardTimes, cardTime) {
-				if err := cardTime.Punched(); err != nil {
-					log.Println(err)
-				}
 
 				NewNotifier() <- NotifyMessage{
 					UserID: tag.UserID,
@@ -117,6 +98,10 @@ func RetrieveCardTime(users []models.User) error {
 				}
 				// FIXME: 发送报告是由协程去实现，如果执行过快，会导致发送多条
 				time.Sleep(time.Millisecond * 300)
+
+				if err := cardTime.Punched(); err != nil {
+					log.Println(err)
+				}
 			}
 		}
 	}
@@ -166,24 +151,30 @@ func cardTimeMatched(pattern []models.CardTime, match models.CardTime) bool {
 	return false
 }
 
+var lastNotifiedTime int64
+
 func CardTimeNotification(users []models.User) error {
 	ctype := uint64(Remind)
 	cdate := time.Now().Format("2006-01-02")
 	ctime := func() string { return time.Now().Format("15:04:05") }
 
-	switch time.Now().Weekday() {
-	case time.Sunday, time.Saturday:
+	if !isWorkDate(cdate) {
 		return nil
 	}
 
-	if ctime() < config.Config.WorkEnd.NotificationTime {
-		fmt.Println("时间未到")
+	if ctime() < config.Config.WorkTime.End {
+		return nil
+	}
+
+	if time.Now().Unix()-lastNotifiedTime < int64(config.Config.WorkEnd.NotificationTick) {
 		return nil
 	}
 
 	for _, user := range users {
-		// checking workend card time
 		if models.IsNotified(user.UserID, cdate, uint64(Worked)) {
+			continue
+		}
+		if !models.CanNotify(user.UserID, cdate) {
 			continue
 		}
 
@@ -196,8 +187,69 @@ func CardTimeNotification(users []models.User) error {
 			Type:    ctype,
 			Account: user.NotifyAccount,
 		}
-		fmt.Println("send")
-		fmt.Println(dingtalk.send())
+		dingtalk.send()
+		models.UpdateNotice(user.UserID, ctype, cdate, ctime())
 	}
+	lastNotifiedTime = time.Now().Unix()
 	return nil
+}
+
+func atou8(s string) uint8 {
+	u, _ := strconv.ParseUint(s, 10, 64)
+	return uint8(u)
+}
+
+func atou16(s string) uint16 {
+	u, _ := strconv.ParseUint(s, 10, 64)
+	return uint16(u)
+}
+
+func isWorkDate(cdate string) bool {
+	cdates := strings.Split(cdate, "-")
+	h, err := models.GetHoliday(atou16(cdates[0]), atou8(cdates[1]), atou8(cdates[2]))
+
+	if err != nil {
+		switch time.Now().Weekday() {
+		case time.Sunday, time.Saturday:
+			return false
+		}
+		return true
+	}
+
+	if !h.WorkDay {
+		return false
+	}
+	return true
+}
+
+var firstNotified = true
+
+func sleepDuration() int {
+	defer func() { firstNotified = false }()
+
+	var tick = 1
+
+	nTime, err := time.ParseInLocation("2006-01-02 15:04:05",
+		time.Now().Format("2006-01-02 ")+config.Config.WorkTime.End, time.Local)
+	if err != nil {
+		log.Println(err)
+		return tick
+	}
+
+	dtime := nTime.Unix() - time.Now().Unix()
+	if dtime >= 0 {
+		if dtime < 5 {
+			tick = 1
+		} else {
+			tick = int(dtime) - 5
+		}
+	} else {
+		if firstNotified {
+			tick = 1
+		} else {
+			tick = 30
+		}
+	}
+
+	return tick
 }

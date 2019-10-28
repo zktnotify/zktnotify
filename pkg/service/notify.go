@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"text/template"
+	"time"
 
 	"github.com/leaftree/onoffice/models"
 	"github.com/leaftree/onoffice/pkg/config"
@@ -17,7 +18,8 @@ const (
 	Worked
 	Midway
 	Lated
-	Remind // notify to take a card
+	Remind    // notify to take a card
+	DelayWork // delay in work
 )
 
 type NotifyMessage struct {
@@ -60,7 +62,7 @@ func (dtn *DingTalkNotifier) Notify() error {
 
 func (dtn *DingTalkNotifier) CanNotify() bool {
 	switch dtn.Type {
-	case Invalid, ToWork, Worked, Lated, Remind:
+	case Invalid, ToWork, Worked, Lated, Remind, DelayWork:
 	default:
 		return false
 	}
@@ -83,6 +85,10 @@ func NewNotifier() chan<- NotifyMessage {
 		early, last := models.EarliestAndLatestCardTime(msg.UserID, msg.Date)
 		ctype := cardTimeType(early, last, msg.Time)
 
+		if ctype == Lated && delayInWork(msg.UserID, msg.Date, msg.Time) {
+			ctype = DelayWork
+		}
+
 		handler := &DingTalkNotifier{
 			UID:  msg.UserID,
 			Name: msg.Name,
@@ -95,6 +101,33 @@ func NewNotifier() chan<- NotifyMessage {
 		xerror.LogError(err)
 	}()
 	return ch
+}
+
+func delayInWork(uid uint64, cdate, ctime string) bool {
+	t, _ := time.Parse("2006-01-02 15:04:05", cdate+" "+ctime)
+	cards, err := models.CardTimes(models.CardTime{
+		UserID:   uid,
+		CardDate: time.Unix(t.Unix()-24*60*60, 0).Format("2006-01-02"),
+	})
+
+	if len(cards) == 0 || err != nil {
+		return false
+	}
+
+	card := cards[0]
+	delay := uint32(0)
+	for _, item := range config.Config.DelayWorkTime.Item {
+		if card.CardTime < item.Time {
+			break
+		}
+		delay = item.Delay
+	}
+
+	tt, _ := time.Parse("2006-01-02 15:04:05", cdate+" "+config.Config.WorkTime.Start)
+	if ctime > tt.Add(time.Duration(delay)*time.Second).Format("15:04:05") {
+		return false
+	}
+	return true
 }
 
 func cardTimeType(early, last *models.CardTime, ctime string) uint64 {
@@ -126,11 +159,12 @@ func (dtn *DingTalkNotifier) msgTextTemplate() string {
 
 	var msg string = "大兄弟，你已经打卡了，是上班、下班自己判断"
 	templateText := map[uint64]string{
-		Remind:  "{{.Name}}，该下班打卡了，当前时间{{.Date}} {{.Time}}",
-		ToWork:  "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}",
-		Worked:  "{{.Name}}，你已经下班打卡，打卡时间{{.Date}} {{.Time}}",
-		Lated:   "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}，可惜你迟到了",
-		Invalid: "{{.Name}}，你已经打卡，打卡时间{{.Date}} {{.Time}}，可是这个时候你打卡干嘛呢",
+		Remind:    "{{.Name}}，该下班打卡了，当前时间{{.Date}} {{.Time}}",
+		ToWork:    "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}",
+		Worked:    "{{.Name}}，你已经下班打卡，打卡时间{{.Date}} {{.Time}}",
+		Lated:     "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}，可惜你迟到了",
+		Invalid:   "{{.Name}}，你已经打卡，打卡时间{{.Date}} {{.Time}}，可是这个时候你打卡干嘛呢",
+		DelayWork: "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}，昨晚下班有点晚，今天不迟到",
 	}
 
 	temp, ok := templateText[dtn.Type]

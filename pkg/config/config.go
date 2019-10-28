@@ -19,13 +19,18 @@ var (
 type config struct {
 	TimeTick uint32 `json:"interval"`
 	WorkEnd  struct {
-		NotificationTime string `json:"time"`
 		NotificationTick uint32 `json:"interval"`
 	} `json:"workend"`
 	WorkTime struct {
 		Start string `json:"start"`
 		End   string `json:"end"`
 	} `json:"worktime"`
+	DelayWorkTime struct {
+		Item []struct {
+			Time  string `json:"time"`
+			Delay uint32 `json:"delay"`
+		} `json:"item"`
+	} `json:"delayworktime"`
 	ZKTServer struct {
 		URL struct {
 			Login   string `json:"login"`
@@ -68,7 +73,6 @@ func load(filename string) (*config, error) {
 	cfg.WorkTime.End = "18:00:00"
 	cfg.WorkTime.Start = "09:15:59"
 	cfg.WorkEnd.NotificationTick = 1800
-	cfg.WorkEnd.NotificationTime = "18:00:00"
 	cfg.ZKTServer.URL.UserID = "http://money.fylos.cn:1234/selfservice/selfreport/"
 	cfg.ZKTServer.URL.Login = "http://money.fylos.cn:1234/selfservice/login/" // XXX:host route-path split
 	cfg.ZKTServer.URL.TimeTag = "http://money.fylos.cn:1234/grid/att/CardTimes/"
@@ -76,6 +80,15 @@ func load(filename string) (*config, error) {
 	cfg.XServer.File.Pid = filepath.Join(WorkDir, AppName+".pid")
 	cfg.XServer.File.Log = filepath.Join(WorkDir, AppName+".log")
 	cfg.XServer.File.DB = filepath.Join(WorkDir, "data", "data.db")
+	cfg.DelayWorkTime.Item = []struct {
+		Time  string `json:"time"`
+		Delay uint32 `json:"delay"`
+	}{
+		{Time: "20:00:00", Delay: 15},
+		{Time: "21:00:00", Delay: 45},
+		{Time: "22:00:00", Delay: 105},
+		{Time: "23:00:00", Delay: 200},
+	}
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {

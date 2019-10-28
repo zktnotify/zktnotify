@@ -82,22 +82,43 @@ func (tag *TimeTagInfos) Today() *TimeTag {
 }
 
 func WorkingUsers() (users []User, err error) {
-	/*
-		dbSQL := "select u.* from user u, card_time c where c.card_date = ? and"
-		rows, err := x.Rows(User{})
-		if err != nil {
+	dbSQL := `
+	SELECT
+		u.id,
+		u.name,
+		u.job_id,
+		u.user_id,
+		u.password,
+		u.notify_url,
+		u.notify_account
+	FROM
+		user u
+	LEFT JOIN
+		notify n
+	ON
+		u.user_id = n.user_id
+	AND
+		n.card_type = 2
+	AND
+		card_date = '?'
+	WHERE
+		u.status = 0
+	AND
+		n.id IS NULL
+	`
+
+	rows, err := x.DB().Query(dbSQL, time.Now().Format("2006-01-02"))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		u := User{}
+		if err = rows.Scan(&u.Id, &u.Name, &u.JobID, &u.UserID, &u.Password, &u.NotifyURL, &u.NotifyAccount); err != nil {
 			return nil, err
 		}
-		defer rows.Close()
-
-		for rows.Next() {
-			user := User{}
-			if err = rows.Scan(&user); err != nil {
-				return nil, err
-			}
-			users = append(users, user)
-		}
-		return users, nil
-	*/
-	return nil, nil
+		users = append(users, u)
+	}
+	return users, nil
 }

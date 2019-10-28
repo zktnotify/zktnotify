@@ -46,6 +46,7 @@ func CardTimes(c CardTime) (times []CardTime, err error) {
 		}
 		times = append(times, ct)
 	}
+
 	return times, nil
 }
 
@@ -64,7 +65,7 @@ func (c CardTime) Punched() error {
 func EarliestAndLatestCardTime(uid uint64, cdate string) (*CardTime, *CardTime) {
 	var times []CardTime
 
-	if x.Where("user_id=? AND card_date=?", uid, cdate).Asc("card_time").Find(&times) != nil {
+	if x.Where("user_id=? AND card_date=? AND status=0", uid, cdate).Asc("card_time").Find(&times) != nil {
 		return nil, nil
 	}
 	if len(times) == 0 {

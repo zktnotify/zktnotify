@@ -52,7 +52,7 @@ func GetUser(uid uint64) *User {
 }
 
 func AllUsers() (users []User, err error) {
-	rows, err := x.Where("status==0").Rows(User{})
+	rows, err := x.Where("status=0").Rows(User{})
 	if err != nil {
 		return nil, err
 	}
