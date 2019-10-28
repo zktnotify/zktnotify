@@ -15,6 +15,7 @@ type Notify struct {
 	CreateUnix int64     `xorm:"'create_time'"`
 	UpdateTime time.Time `xorm:"-"`
 	UpdateUnix int64     `xorm:"'update_time'"`
+	Status     int       `xorm:"status"`
 }
 
 func (n *Notify) BeforeInsert() {
@@ -33,7 +34,7 @@ func (n *Notify) BeforeUpdate() {
 
 func IsNotified(uid uint64, cdate string, ctype uint64) bool {
 	n := Notify{UserID: uid, CardDate: cdate, CardType: ctype, Notified: true}
-	if ok, err := x.Exist(&n); !ok || err != nil {
+	if ok, err := x.Where("status=0").Exist(&n); !ok || err != nil {
 		return false
 	}
 	return true
@@ -48,7 +49,7 @@ func Notified(uid uint64, ctype uint64, cdate, ctime string) error {
 		Notified: true,
 	}
 
-	ok, err := x.Exist(&n)
+	ok, err := x.Where("status=0").Exist(&n)
 	if err != nil {
 		return err
 	}

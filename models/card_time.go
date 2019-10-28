@@ -33,7 +33,7 @@ func (c *CardTime) BeforeUpdate() {
 }
 
 func CardTimes(c CardTime) (times []CardTime, err error) {
-	rows, err := x.Rows(c)
+	rows, err := x.Where("status=0").Rows(c)
 	if err != nil {
 		return nil, err
 	}
