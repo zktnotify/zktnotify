@@ -6,11 +6,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/leaftree/onoffice/models"
-	"github.com/leaftree/onoffice/pkg/config"
-	"github.com/leaftree/onoffice/pkg/notify/dingtalk"
-	"github.com/leaftree/onoffice/pkg/shorturl"
-	"github.com/leaftree/onoffice/pkg/xerror"
+	"github.com/leaftree/ctnotify/models"
+	"github.com/leaftree/ctnotify/pkg/config"
+	"github.com/leaftree/ctnotify/pkg/notify/dingtalk"
+	"github.com/leaftree/ctnotify/pkg/shorturl"
+	"github.com/leaftree/ctnotify/pkg/xerror"
 )
 
 const (

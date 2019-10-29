@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/leaftree/onoffice/pkg/xpath"
+	"github.com/leaftree/ctnotify/pkg/xpath"
 )
 
 var (

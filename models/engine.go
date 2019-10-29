@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/go-xorm/xorm"
-	"github.com/leaftree/onoffice/pkg/config"
-	"github.com/leaftree/onoffice/pkg/xpath"
+	"github.com/leaftree/ctnotify/pkg/config"
+	"github.com/leaftree/ctnotify/pkg/xpath"
 	_ "github.com/mattn/go-sqlite3"
 )
 

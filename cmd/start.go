@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/leaftree/onoffice/models"
-	"github.com/leaftree/onoffice/pkg/config"
-	"github.com/leaftree/onoffice/pkg/service"
-	"github.com/leaftree/onoffice/router"
+	"github.com/leaftree/ctnotify/models"
+	"github.com/leaftree/ctnotify/pkg/config"
+	"github.com/leaftree/ctnotify/pkg/service"
+	"github.com/leaftree/ctnotify/router"
 	"github.com/urfave/cli"
 )
 

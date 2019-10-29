@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/leaftree/onoffice/pkg/config"
+	"github.com/leaftree/ctnotify/pkg/config"
 )
 
 func ShortURL(urlSuffix string, data map[string]interface{}) string {

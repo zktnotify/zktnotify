@@ -4,13 +4,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/leaftree/onoffice/cmd"
+	"github.com/leaftree/ctnotify/cmd"
 	"github.com/urfave/cli"
 )
 
 const (
 	version = "v0.1-alpha"
-	pkg     = "onoffice"
+	pkg     = "ctnoitfy"
 )
 
 func init() {

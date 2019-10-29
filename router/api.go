@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/leaftree/onoffice/router/notify"
+	"github.com/leaftree/ctnotify/router/notify"
 )
 
 func NewApiMux() *mux.Router {

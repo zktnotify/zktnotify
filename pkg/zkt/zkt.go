@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/imroc/req"
-	"github.com/leaftree/onoffice/models"
+	"github.com/leaftree/ctnotify/models"
 	"github.com/opesun/goquery"
 )
 
