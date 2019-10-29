@@ -9,6 +9,7 @@ import (
 	"github.com/leaftree/onoffice/models"
 	"github.com/leaftree/onoffice/pkg/config"
 	"github.com/leaftree/onoffice/pkg/notify/dingtalk"
+	"github.com/leaftree/onoffice/pkg/shorturl"
 	"github.com/leaftree/onoffice/pkg/xerror"
 )
 
@@ -54,7 +55,10 @@ func (dtn *DingTalkNotifier) Notify() error {
 		dtn.URL = user.NotifyURL
 		dtn.Account = user.NotifyAccount
 
-		models.Notified(dtn.UID, dtn.Type, dtn.Date, dtn.Time)
+		err := models.Notified(dtn.UID, dtn.Type, dtn.Date, dtn.Time)
+		if err != nil {
+			return err
+		}
 		return dtn.send()
 	}
 	return nil
@@ -155,11 +159,18 @@ func cardTimeType(early, last *models.CardTime, ctime string) uint64 {
 	return Midway
 }
 
+func (dtn *DingTalkNotifier) shortURL() string {
+	return shorturl.ShortURL("/counternotice", map[string]interface{}{
+		"userid":    dtn.UID,
+		"card_date": dtn.Date,
+	})
+}
+
 func (dtn *DingTalkNotifier) msgTextTemplate() string {
 
 	var msg string = "大兄弟，你已经打卡了，是上班、下班自己判断"
 	templateText := map[uint64]string{
-		Remind:    "{{.Name}}，该下班打卡了，当前时间{{.Date}} {{.Time}}",
+		Remind:    "{{.Name}}，该下班打卡了，当前时间{{.Date}} {{.Time}} " + dtn.shortURL(),
 		ToWork:    "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}",
 		Worked:    "{{.Name}}，你已经下班打卡，打卡时间{{.Date}} {{.Time}}",
 		Lated:     "{{.Name}}，你已经上班打卡，打卡时间{{.Date}} {{.Time}}，可惜你迟到了",

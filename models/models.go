@@ -98,7 +98,7 @@ func WorkingUsers() (users []User, err error) {
 	ON
 		u.user_id = n.user_id
 	AND
-		n.card_type = 2
+		n.card_type IN(1,3,4,5,6)
 	AND
 		card_date = '?'
 	WHERE

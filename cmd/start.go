@@ -2,15 +2,18 @@ package cmd
 
 import (
 	"context"
-	"fylos/flog"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/leaftree/onoffice/models"
 	"github.com/leaftree/onoffice/pkg/config"
 	"github.com/leaftree/onoffice/pkg/service"
+	"github.com/leaftree/onoffice/router"
 	"github.com/urfave/cli"
 )
 
@@ -35,6 +38,7 @@ func GoFunc(f func() error) chan error {
 }
 
 func actionStartServer(c *cli.Context) error {
+	ctx, canceled := context.WithCancel(context.Background())
 	config.NewConfig()
 
 	logPath := config.Config.LogName()
@@ -46,9 +50,26 @@ func actionStartServer(c *cli.Context) error {
 	if c.Bool("foreground") {
 		config.NewConfig()
 		models.NewEngine()
-		service.Service(context.Background())
+		service.Service(ctx)
+
+		hdlr := router.NewApiMux()
+		svr := &http.Server{
+			Addr:         config.Config.XServer.Addr,
+			WriteTimeout: time.Second * 4,
+			Handler:      hdlr,
+		}
+
+		go func() {
+			if err := svr.ListenAndServe(); err != nil {
+				log.Println(err)
+				canceled()
+				exit(0)
+			}
+		}()
+		log.Printf("server started, listening on %s\n", config.Config.XServer.Addr)
+		catchExitSignal(syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
+		canceled()
 	} else {
-		flog.Info()
 		cmd := exec.Command(os.Args[0], "start", "-f")
 		cmd.Stdout = logFd
 		cmd.Stderr = logFd
@@ -63,4 +84,22 @@ func actionStartServer(c *cli.Context) error {
 		}
 	}
 	return nil
+}
+
+func catchExitSignal(sigs ...os.Signal) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, sigs...)
+
+	for sig := range ch {
+		if sig == syscall.SIGHUP {
+			continue
+		}
+		log.Printf("Got signal: %v, exit\n", sig)
+		break
+	}
+}
+
+func exit(sig int) {
+	time.Sleep(time.Millisecond * 200)
+	os.Exit(sig)
 }

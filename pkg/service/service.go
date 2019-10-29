@@ -28,18 +28,20 @@ func Service(ctx context.Context) {
 		}
 	}()
 
-	for {
-		duration := sleepDuration()
+	go func() {
+		for {
+			duration := sleepDuration()
 
-		select {
-		case <-time.After(time.Duration(duration) * time.Second):
-			if err := CardTimeNotification(RetrieveWorkingUsers()); err != nil {
-				log.Println(err)
+			select {
+			case <-time.After(time.Duration(duration) * time.Second):
+				if err := CardTimeNotification(RetrieveWorkingUsers()); err != nil {
+					log.Println(err)
+				}
+			case <-ctx.Done():
+				return
 			}
-		case <-ctx.Done():
-			return
 		}
-	}
+	}()
 }
 
 func RetrieveAllUsers() []models.User {

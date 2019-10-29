@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -88,5 +89,19 @@ func UpdateNotice(uid uint64, ctype uint64, cdate, ctime string) error {
 
 	_, err = x.Insert(&n)
 	return err
+}
 
+func CounterNotice(uid uint64, cdate string) error {
+	n := Notify{
+		NotifiedStatus: 2,
+	}
+	affected, err := x.Where("user_id=? AND card_date=? AND card_type=? AND status=0", uid, cdate, 5).Update(&n)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }

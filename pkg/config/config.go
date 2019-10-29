@@ -46,6 +46,13 @@ type config struct {
 			Log string `json:"log"`
 			DB  string `json:"database"`
 		} `json:"file"`
+		ShortURL struct {
+			Server struct {
+				AppKey  string `json:"appkey"`
+				ApiAddr string `json:"address"`
+			} `json:"server"`
+			PrefixURL string `json:"prefixurl"`
+		} `shorturl`
 	} `json:"xserver"`
 }
 
@@ -76,10 +83,13 @@ func load(filename string) (*config, error) {
 	cfg.ZKTServer.URL.UserID = "http://money.fylos.cn:1234/selfservice/selfreport/"
 	cfg.ZKTServer.URL.Login = "http://money.fylos.cn:1234/selfservice/login/" // XXX:host route-path split
 	cfg.ZKTServer.URL.TimeTag = "http://money.fylos.cn:1234/grid/att/CardTimes/"
-	cfg.XServer.Addr = "http://127.0.0.1:4444"
+	cfg.XServer.Addr = "http://0.0.0.0:4567"
 	cfg.XServer.File.Pid = filepath.Join(WorkDir, AppName+".pid")
 	cfg.XServer.File.Log = filepath.Join(WorkDir, AppName+".log")
 	cfg.XServer.File.DB = filepath.Join(WorkDir, "data", "data.db")
+	cfg.XServer.ShortURL.Server.AppKey = "5db6aba18e676d1b43de23f6@79e2122d548ba64431f097e6c516774d"
+	cfg.XServer.ShortURL.Server.ApiAddr = "http://api.suolink.cn/api.php"
+	cfg.XServer.ShortURL.PrefixURL = "http://fylos.cn:4567/api/v1"
 	cfg.DelayWorkTime.Item = []struct {
 		Time  string `json:"time"`
 		Delay uint32 `json:"delay"`
