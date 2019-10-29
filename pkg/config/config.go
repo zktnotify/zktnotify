@@ -83,7 +83,7 @@ func load(filename string) (*config, error) {
 	cfg.ZKTServer.URL.UserID = "http://money.fylos.cn:1234/selfservice/selfreport/"
 	cfg.ZKTServer.URL.Login = "http://money.fylos.cn:1234/selfservice/login/" // XXX:host route-path split
 	cfg.ZKTServer.URL.TimeTag = "http://money.fylos.cn:1234/grid/att/CardTimes/"
-	cfg.XServer.Addr = "http://0.0.0.0:4567"
+	cfg.XServer.Addr = "0.0.0.0:4567"
 	cfg.XServer.File.Pid = filepath.Join(WorkDir, AppName+".pid")
 	cfg.XServer.File.Log = filepath.Join(WorkDir, AppName+".log")
 	cfg.XServer.File.DB = filepath.Join(WorkDir, "data", "data.db")
