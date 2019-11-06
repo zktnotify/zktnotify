@@ -2,15 +2,17 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"log"
 	"text/template"
 	"time"
 
 	"github.com/leaftree/ctnotify/models"
 	"github.com/leaftree/ctnotify/pkg/config"
-	"github.com/leaftree/ctnotify/pkg/notify/dingtalk"
+	xnotify "github.com/leaftree/ctnotify/pkg/notify"
+	"github.com/leaftree/ctnotify/pkg/notify/typed"
 	"github.com/leaftree/ctnotify/pkg/shorturl"
-	"github.com/leaftree/ctnotify/pkg/xerror"
 )
 
 const (
@@ -30,30 +32,27 @@ type NotifyMessage struct {
 	Time   string
 }
 
-type Notifier interface {
-	Notify() error
-	CanNotify() bool
+type ZKTNotifier struct {
+	UID        uint64
+	Name       string
+	Date       string
+	Time       string
+	Type       uint64
+	url        string
+	account    string
+	notifyType typed.NotifierType
 }
 
-type DingTalkNotifier struct {
-	URL     string
-	UID     uint64
-	Name    string
-	Date    string
-	Time    string
-	Type    uint64
-	Account string
-}
-
-func (dtn *DingTalkNotifier) Notify() error {
+func (dtn *ZKTNotifier) Notify() error {
 	if dtn.CanNotify() {
 		user := models.GetUser(dtn.UID)
 		if user == nil {
 			return fmt.Errorf("user(%d) not found", dtn.UID)
 		}
 
-		dtn.URL = user.NotifyURL
-		dtn.Account = user.NotifyAccount
+		dtn.url = user.NotifyURL
+		dtn.account = user.NotifyAccount
+		dtn.notifyType = typed.NotifierType(user.NotifyType)
 
 		err := models.Notified(dtn.UID, dtn.Type, dtn.Date, dtn.Time)
 		if err != nil {
@@ -64,7 +63,7 @@ func (dtn *DingTalkNotifier) Notify() error {
 	return nil
 }
 
-func (dtn *DingTalkNotifier) CanNotify() bool {
+func (dtn *ZKTNotifier) CanNotify() bool {
 	switch dtn.Type {
 	case Invalid, ToWork, Worked, Lated, Remind, DelayWork:
 	default:
@@ -77,8 +76,11 @@ func (dtn *DingTalkNotifier) CanNotify() bool {
 	return true
 }
 
-func (dtn *DingTalkNotifier) send() error {
-	return dingtalk.SendNotify(dtn.URL, dtn.msgTextTemplate(), dingtalk.Receiver{AtMobiles: []string{dtn.Account}})
+func (dtn *ZKTNotifier) send() error {
+	if !typed.Valid(dtn.notifyType) {
+		return errors.New("invalid notification service type")
+	}
+	return xnotify.New(dtn.notifyType).Notify(dtn.url, dtn.msgTextTemplate(), typed.Receiver{All: false, ID: []string{dtn.account}})
 }
 
 func NewNotifier() chan<- NotifyMessage {
@@ -93,7 +95,7 @@ func NewNotifier() chan<- NotifyMessage {
 			ctype = DelayWork
 		}
 
-		handler := &DingTalkNotifier{
+		handler := &ZKTNotifier{
 			UID:  msg.UserID,
 			Name: msg.Name,
 			Date: msg.Date,
@@ -101,8 +103,9 @@ func NewNotifier() chan<- NotifyMessage {
 			Type: uint64(ctype),
 		}
 
-		err := handler.Notify()
-		xerror.LogError(err)
+		if err := handler.Notify(); err != nil {
+			log.Println(err)
+		}
 	}()
 	return ch
 }
@@ -159,14 +162,14 @@ func cardTimeType(early, last *models.CardTime, ctime string) uint64 {
 	return Midway
 }
 
-func (dtn *DingTalkNotifier) shortURL() string {
+func (dtn *ZKTNotifier) shortURL() string {
 	return shorturl.ShortURL("/counternotice", map[string]interface{}{
 		"userid":    dtn.UID,
 		"card_date": dtn.Date,
 	})
 }
 
-func (dtn *DingTalkNotifier) msgTextTemplate() string {
+func (dtn *ZKTNotifier) msgTextTemplate() string {
 
 	var msg string = "大兄弟，你已经打卡了，是上班、下班自己判断"
 	templateText := map[uint64]string{

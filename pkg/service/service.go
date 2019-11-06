@@ -180,14 +180,12 @@ func CardTimeNotification(users []models.User) error {
 			continue
 		}
 
-		dingtalk := DingTalkNotifier{
-			URL:     user.NotifyURL,
-			UID:     user.UserID,
-			Name:    user.Name,
-			Date:    cdate,
-			Time:    ctime(),
-			Type:    ctype,
-			Account: user.NotifyAccount,
+		dingtalk := ZKTNotifier{
+			UID:  user.UserID,
+			Name: user.Name,
+			Date: cdate,
+			Time: ctime(),
+			Type: ctype,
 		}
 		dingtalk.send()
 		models.UpdateNotice(user.UserID, ctype, cdate, ctime())

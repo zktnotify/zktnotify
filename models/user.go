@@ -12,12 +12,13 @@ type User struct {
 	UserID        uint64    `xorm:"user_id"`
 	Password      string    `xorm:"password"`
 	NotifyURL     string    `xorm:"notify_url"`
+	NotifyType    uint32    `xorm:"DEFAULT 0 'notify_type'"`
 	NotifyAccount string    `xorm:"notify_account"`
 	CreateTime    time.Time `xorm:"-"`
 	CreateUnix    int64     `xorm:"'create_time'"`
 	UpdateTime    time.Time `xorm:"-"`
 	UpdateUnix    int64     `xorm:"'update_time'"`
-	Status        int       `xorm:"status"`
+	Status        int       `xorm:"DEFAULT 0 'status'"`
 }
 
 func (u *User) BeforeInsert() {

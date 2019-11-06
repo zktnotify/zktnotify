@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+
+	"github.com/leaftree/ctnotify/pkg/notify/typed"
 )
 
 type Text struct {
@@ -21,9 +23,15 @@ type Message struct {
 	At   Receiver `json:"at"`
 }
 
-func SendNotify(url string, msg string, at ...Receiver) error {
+type DingTalk struct{}
 
-	if url == "" {
+func New() typed.Notifier {
+	return &DingTalk{}
+}
+
+func (d *DingTalk) Notify(url string, msg string, receiver ...typed.Receiver) error {
+
+	if d == nil || url == "" {
 		return nil
 	}
 
@@ -31,8 +39,11 @@ func SendNotify(url string, msg string, at ...Receiver) error {
 		Type: "text",
 		Text: Text{Content: msg},
 	}
-	if len(at) == 1 {
-		Dmsg.At = at[0]
+	if len(receiver) == 1 {
+		who := Receiver{}
+		who.IsAtAll = receiver[0].All
+		who.AtMobiles = append(who.AtMobiles, receiver[0].ID...)
+		Dmsg.At = who
 	}
 	payload := new(bytes.Buffer)
 	json.NewEncoder(payload).Encode(Dmsg)
