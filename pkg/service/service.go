@@ -10,6 +10,7 @@ import (
 
 	"github.com/leaftree/ctnotify/models"
 	"github.com/leaftree/ctnotify/pkg/config"
+	"github.com/leaftree/ctnotify/pkg/notify/typed"
 	"github.com/leaftree/ctnotify/pkg/zkt"
 )
 
@@ -181,11 +182,13 @@ func CardTimeNotification(users []models.User) error {
 		}
 
 		dingtalk := ZKTNotifier{
-			UID:  user.UserID,
-			Name: user.Name,
-			Date: cdate,
-			Time: ctime(),
-			Type: ctype,
+			UID:        user.UserID,
+			Name:       user.Name,
+			Date:       cdate,
+			Time:       ctime(),
+			Type:       ctype,
+			NotifyType: typed.NotifierType(user.NotifyType),
+			URL:        user.NotifyURL,
 		}
 		dingtalk.send()
 		models.UpdateNotice(user.UserID, ctype, cdate, ctime())
