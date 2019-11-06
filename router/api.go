@@ -18,11 +18,6 @@ func NewApiMux() *mux.Router {
 		jsonresp.Respond(w, 404, nil, "迷路了吧")
 	})
 
-	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(404)
-		w.Write([]byte("迷路了吧"))
-	})
-
 	regRouter(r)
 	return r
 }
