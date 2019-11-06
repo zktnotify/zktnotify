@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/leaftree/ctnotify/pkg/config"
-	jsonresp "github.com/leaftree/k8shelper/pkg/resp"
-	"github.com/leaftree/k8shelper/pkg/xhttp"
+	jsonresp "github.com/leaftree/ctnotify/pkg/resp"
+	"github.com/leaftree/ctnotify/pkg/xhttp"
 	"github.com/urfave/cli"
 )
 
