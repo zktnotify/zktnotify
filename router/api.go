@@ -5,12 +5,18 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	jsonresp "github.com/leaftree/ctnotify/pkg/resp"
 	"github.com/leaftree/ctnotify/router/notify"
+	"github.com/leaftree/ctnotify/router/server"
 )
 
 func NewApiMux() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(loggingMiddleware)
+
+	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonresp.Respond(w, 404, nil, "迷路了吧")
+	})
 
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
@@ -23,6 +29,10 @@ func NewApiMux() *mux.Router {
 
 func regRouter(r *mux.Router) {
 	v1s := r.PathPrefix("/api/v1").Subrouter()
+
+	v1s.HandleFunc("/status", server.Status).Methods("GET")
+	v1s.HandleFunc("/shutdown", server.Shutdown).Methods("GET")
+
 	v1s.HandleFunc("/counternotice", notify.CounterNotice).Methods("GET")
 }
 

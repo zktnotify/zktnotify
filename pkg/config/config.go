@@ -38,6 +38,11 @@ type config struct {
 			TimeTag string `json:"timetag"`
 		} `json:"url"`
 	} `json:"zktserver"`
+	XClient struct {
+		Server struct {
+			Addr string `json:"addr"`
+		} `json:"server"`
+	} `json:"xclient"`
 	XServer struct {
 		Addr string `json:"addr"`
 		Name string `json:"name"`
@@ -90,6 +95,7 @@ func load(filename string) (*config, error) {
 	cfg.XServer.ShortURL.Server.AppKey = "5db6aba18e676d1b43de23f6@79e2122d548ba64431f097e6c516774d"
 	cfg.XServer.ShortURL.Server.ApiAddr = "http://api.suolink.cn/api.php"
 	cfg.XServer.ShortURL.PrefixURL = "http://fylos.cn:4567/api/v1"
+	cfg.XClient.Server.Addr = "http://127.0.0.1:4567"
 	cfg.DelayWorkTime.Item = []struct {
 		Time  string `json:"time"`
 		Delay uint32 `json:"delay"`
