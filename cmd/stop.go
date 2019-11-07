@@ -18,12 +18,16 @@ var Stop = cli.Command{
 			Name:  "restart, r",
 			Usage: "restart server(todo)",
 		},
+		cli.StringFlag{
+			Name:  "conf, c",
+			Usage: "config file",
+		},
 	},
 	Action: actionStop,
 }
 
 func actionStop(c *cli.Context) error {
-	config.NewConfig()
+	config.NewConfig(c.String("conf"))
 
 	url := config.Config.XClient.Server.Addr + "/api/v1/shutdown"
 	resp, err := xhttp.Get(url)

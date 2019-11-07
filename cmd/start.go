@@ -25,6 +25,10 @@ var Start = cli.Command{
 			Name:  "foreground, f",
 			Usage: "start in foreground",
 		},
+		cli.StringFlag{
+			Name:  "conf, c",
+			Usage: "config file",
+		},
 	},
 	Action: actionStartServer,
 }
@@ -38,8 +42,8 @@ func GoFunc(f func() error) chan error {
 }
 
 func actionStartServer(c *cli.Context) error {
+	config.NewConfig(c.String("conf"))
 	ctx, canceled := context.WithCancel(context.Background())
-	config.NewConfig()
 
 	logPath := config.Config.LogName()
 	logFd, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
@@ -48,7 +52,7 @@ func actionStartServer(c *cli.Context) error {
 	}
 
 	if c.Bool("foreground") {
-		config.NewConfig()
+		config.NewConfig(c.String("conf"))
 		models.NewEngine()
 		service.Service(ctx)
 
