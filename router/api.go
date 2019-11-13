@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/leaftree/ctnotify/router/usermng"
 	"log"
 	"net/http"
 
@@ -29,6 +30,10 @@ func regRouter(r *mux.Router) {
 	v1s.HandleFunc("/shutdown", server.Shutdown).Methods("GET")
 
 	v1s.HandleFunc("/counternotice", notify.CounterNotice).Methods("GET")
+	v1s.HandleFunc("/usermng/user", usermng.AddUser).Methods("POST")
+	v1s.HandleFunc("/usermng/user/{jobId}", usermng.GetUser).Methods("GET")
+	v1s.HandleFunc("/usermng/user/{jobId}", usermng.DeleteUser).Methods("DELETE")
+	v1s.HandleFunc("/usermng/user/{jobId}", usermng.ChangeUserStatus).Methods("PUT")
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
