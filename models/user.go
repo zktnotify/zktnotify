@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -48,6 +49,59 @@ func GetUser(uid uint64) *User {
 			return nil
 		}
 		return &user
+	}
+	return nil
+}
+
+func GetUserByJobId(jobId string) *User {
+	rows, err := x.Rows(User{JobID: jobId, Status: 0})
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	user := User{}
+	for rows.Next() {
+		if err := rows.Scan(&user); err != nil {
+			return nil
+		}
+		return &user
+	}
+	return nil
+}
+
+func SaveUser(user *User) error {
+	affected, err := x.Insert(user)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return errors.New("save user failed")
+	}
+	return nil
+}
+
+func DeleteUser(jobId uint64) error {
+	affected, err := x.Where("job_id=?", fmt.Sprintf("%d", jobId)).Delete(User{})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return fmt.Errorf("not found job_id(%d) ", jobId)
+	}
+	return nil
+}
+
+func ChangeUserStatus(jobId uint64,status int) error {
+	user := User{
+		Status: status,
+	}
+	affected, err := x.Cols("status").Where("job_id=?", fmt.Sprintf("%d", jobId)).Update(user)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return fmt.Errorf("not found job_id(%d) ", jobId)
 	}
 	return nil
 }
