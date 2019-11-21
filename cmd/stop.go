@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/leaftree/ctnotify/pkg/config"
-	jsonresp "github.com/leaftree/ctnotify/pkg/resp"
-	"github.com/leaftree/ctnotify/pkg/xhttp"
 	"github.com/urfave/cli"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	jsonresp "github.com/zktnotify/zktnotify/pkg/resp"
+	"github.com/zktnotify/zktnotify/pkg/xhttp"
 )
 
 var Stop = cli.Command{

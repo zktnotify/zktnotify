@@ -6,9 +6,9 @@ import (
 	"path"
 
 	"github.com/go-xorm/xorm"
-	"github.com/leaftree/ctnotify/pkg/config"
-	"github.com/leaftree/ctnotify/pkg/xpath"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	"github.com/zktnotify/zktnotify/pkg/xpath"
 )
 
 var (

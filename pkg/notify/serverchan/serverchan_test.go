@@ -1,7 +1,7 @@
 package serverchan
 
 import "testing"
-import "github.com/leaftree/ctnotify/pkg/notify/typed"
+import "github.com/zktnotify/zktnotify/pkg/notify/typed"
 
 func TestNotifier(t *testing.T) {
 	var sender typed.Notifier

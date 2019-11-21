@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/leaftree/ctnotify/cmd"
 	"github.com/urfave/cli"
+	"github.com/zktnotify/zktnotify/cmd"
 )
 
 const (

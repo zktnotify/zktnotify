@@ -8,11 +8,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/pkg/config"
-	xnotify "github.com/leaftree/ctnotify/pkg/notify"
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
-	"github.com/leaftree/ctnotify/pkg/shorturl"
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	xnotify "github.com/zktnotify/zktnotify/pkg/notify"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/shorturl"
 )
 
 const (

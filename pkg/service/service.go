@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/pkg/config"
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
-	"github.com/leaftree/ctnotify/pkg/zkt"
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/zkt"
 )
 
 // Service main work service

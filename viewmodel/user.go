@@ -2,7 +2,8 @@ package viewmodel
 
 import (
 	"fmt"
-	"github.com/leaftree/ctnotify/models"
+
+	"github.com/zktnotify/zktnotify/models"
 )
 
 type User struct {

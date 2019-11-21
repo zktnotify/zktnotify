@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/leaftree/ctnotify/pkg/resp"
-	"github.com/leaftree/ctnotify/pkg/service"
-	"github.com/leaftree/ctnotify/pkg/validate"
-	"github.com/leaftree/ctnotify/viewmodel"
+	"github.com/zktnotify/zktnotify/pkg/resp"
+	"github.com/zktnotify/zktnotify/pkg/service"
+	"github.com/zktnotify/zktnotify/pkg/validate"
+	"github.com/zktnotify/zktnotify/viewmodel"
 	"gopkg.in/go-playground/validator.v9"
 	"io/ioutil"
 	"net/http"
@@ -110,7 +110,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	})
 	return
 }
-
 
 func ChangeUserStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

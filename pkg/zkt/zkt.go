@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/imroc/req"
-	"github.com/leaftree/ctnotify/models"
 	"github.com/opesun/goquery"
+	"github.com/zktnotify/zktnotify/models"
 )
 
 func Login(url, username, password string) error {

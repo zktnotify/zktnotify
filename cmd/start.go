@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/pkg/config"
-	"github.com/leaftree/ctnotify/pkg/service"
-	"github.com/leaftree/ctnotify/router"
 	"github.com/urfave/cli"
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	"github.com/zktnotify/zktnotify/pkg/service"
+	"github.com/zktnotify/zktnotify/router"
 )
 
 var Start = cli.Command{

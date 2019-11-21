@@ -7,7 +7,7 @@ import (
 	"net/http"
 	httpurl "net/url"
 
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 
 type ServerChan struct{}

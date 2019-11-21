@@ -3,9 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/viewmodel"
 	"sync"
+
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/viewmodel"
 )
 
 var (
@@ -67,8 +68,8 @@ func (*userManageImpl) DeleteUser(jobId uint64) error {
 	return models.DeleteUser(jobId)
 }
 
-func (*userManageImpl) ChangeUserStatus(jobId uint64) error{
-	user := models.GetUserByJobId(fmt.Sprintf("%d",jobId))
+func (*userManageImpl) ChangeUserStatus(jobId uint64) error {
+	user := models.GetUserByJobId(fmt.Sprintf("%d", jobId))
 	if user == nil {
 		return errors.New("The user not found!")
 	}
@@ -78,5 +79,5 @@ func (*userManageImpl) ChangeUserStatus(jobId uint64) error{
 	} else {
 		status = 0
 	}
-	return models.ChangeUserStatus(jobId,status)
+	return models.ChangeUserStatus(jobId, status)
 }

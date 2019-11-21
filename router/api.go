@@ -1,14 +1,15 @@
 package router
 
 import (
-	"github.com/leaftree/ctnotify/router/usermng"
 	"log"
 	"net/http"
 
+	"github.com/zktnotify/zktnotify/router/usermng"
+
 	"github.com/gorilla/mux"
-	jsonresp "github.com/leaftree/ctnotify/pkg/resp"
-	"github.com/leaftree/ctnotify/router/notify"
-	"github.com/leaftree/ctnotify/router/server"
+	jsonresp "github.com/zktnotify/zktnotify/pkg/resp"
+	"github.com/zktnotify/zktnotify/router/notify"
+	"github.com/zktnotify/zktnotify/router/server"
 )
 
 func NewApiMux() *mux.Router {

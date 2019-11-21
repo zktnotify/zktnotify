@@ -1,9 +1,9 @@
 package notify
 
 import (
-	"github.com/leaftree/ctnotify/pkg/notify/dingtalk"
-	"github.com/leaftree/ctnotify/pkg/notify/serverchan"
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/notify/dingtalk"
+	"github.com/zktnotify/zktnotify/pkg/notify/serverchan"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 
 func New(ntype typed.NotifierType) typed.Notifier {

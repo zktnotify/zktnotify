@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 
 type Text struct {
