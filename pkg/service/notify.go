@@ -39,7 +39,7 @@ type ZKTNotifier struct {
 	Date       string
 	Time       string
 	Type       uint64
-	URL        string
+	Token      string
 	account    string
 	NotifyType typed.NotifierType
 }
@@ -51,7 +51,7 @@ func (dtn *ZKTNotifier) Notify() error {
 			return fmt.Errorf("user(%d) not found", dtn.UID)
 		}
 
-		dtn.URL = user.NotifyURL
+		dtn.Token = user.NotifyToken
 		dtn.account = user.NotifyAccount
 		dtn.NotifyType = typed.NotifierType(user.NotifyType)
 
@@ -81,7 +81,7 @@ func (dtn *ZKTNotifier) send() error {
 	if !typed.Valid(dtn.NotifyType) {
 		return errors.New("invalid notification service type")
 	}
-	return xnotify.New(dtn.NotifyType).Notify(dtn.URL, dtn.msgTextTemplate(), typed.Receiver{All: false, ID: []string{dtn.account}})
+	return xnotify.New(dtn.NotifyType).Notify(dtn.Token, dtn.msgTextTemplate(), typed.Receiver{All: false, ID: []string{dtn.account}})
 }
 
 func NewNotifier() chan<- NotifyMessage {

@@ -59,7 +59,7 @@ func (*userManageImpl) GetUser(jobId uint64) (*viewmodel.User, error) {
 		JobId:    jobId,
 		Password: user.Password,
 		Mobile:   user.NotifyAccount,
-		WebHook:  user.NotifyURL,
+		WebHook:  user.NotifyToken,
 		Status:   user.Status,
 	}, nil
 }

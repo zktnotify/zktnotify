@@ -12,7 +12,7 @@ type User struct {
 	JobID         string    `xorm:"UNIQUE(UQE_USER) NOT NULL 'job_id'"`
 	UserID        uint64    `xorm:"user_id"`
 	Password      string    `xorm:"password"`
-	NotifyURL     string    `xorm:"notify_url"`
+	NotifyToken   string    `xorm:"notify_url"`
 	NotifyType    uint32    `xorm:"DEFAULT 0 'notify_type'"`
 	NotifyAccount string    `xorm:"notify_account"`
 	CreateTime    time.Time `xorm:"-"`
@@ -92,7 +92,7 @@ func DeleteUser(jobId uint64) error {
 	return nil
 }
 
-func ChangeUserStatus(jobId uint64,status int) error {
+func ChangeUserStatus(jobId uint64, status int) error {
 	user := User{
 		Status: status,
 	}

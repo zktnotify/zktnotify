@@ -188,7 +188,7 @@ func CardTimeNotification(users []models.User) error {
 			Time:       ctime(),
 			Type:       ctype,
 			NotifyType: typed.NotifierType(user.NotifyType),
-			URL:        user.NotifyURL,
+			Token:      user.NotifyToken,
 		}
 		dingtalk.send()
 		models.UpdateNotice(user.UserID, ctype, cdate, ctime())

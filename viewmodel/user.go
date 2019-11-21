@@ -24,7 +24,7 @@ func (u *User) ToModelUser() *models.User {
 		JobID:         fmt.Sprintf("%d", u.JobId),
 		UserID:        u.UserId,
 		Password:      u.Password,
-		NotifyURL:     u.WebHook,
+		NotifyToken:   u.WebHook,
 		NotifyType:    0,
 		NotifyAccount: u.Mobile,
 		Status:        u.Status,
