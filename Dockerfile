@@ -18,7 +18,7 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
     && rm -rf /$APP_NAME/builds
 
 
-FROM centos as prod
+FROM centos:8 as prod
 MAINTAINER "leaftree <leaftree@github.com>"
 
 WORKDIR /ctnotify
@@ -29,4 +29,4 @@ COPY ./run.sh /ctnotify/run.sh
 
 EXPOSE 4567 4567
 
-CMD ["/ctnotify/run.sh"]
+CMD ["/ctnotify/ctnotify","start","-f"]
