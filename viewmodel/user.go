@@ -2,7 +2,8 @@ package viewmodel
 
 import (
 	"fmt"
-	"github.com/leaftree/ctnotify/models"
+
+	"github.com/zktnotify/zktnotify/models"
 )
 
 type User struct {
@@ -23,7 +24,7 @@ func (u *User) ToModelUser() *models.User {
 		JobID:         fmt.Sprintf("%d", u.JobId),
 		UserID:        u.UserId,
 		Password:      u.Password,
-		NotifyURL:     u.WebHook,
+		NotifyToken:   u.WebHook,
 		NotifyType:    0,
 		NotifyAccount: u.Mobile,
 		Status:        u.Status,

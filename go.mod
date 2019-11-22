@@ -1,4 +1,4 @@
-module github.com/leaftree/ctnotify
+module github.com/zktnotify/zktnotify
 
 go 1.12
 

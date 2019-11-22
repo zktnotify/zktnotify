@@ -3,10 +3,10 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/viewmodel"
 	"strconv"
 	"sync"
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/viewmodel"
 )
 
 var (
@@ -60,7 +60,7 @@ func (*userManageImpl) GetUser(jobId uint64) (*viewmodel.User, error) {
 		JobId:    jobId,
 		Password: user.Password,
 		Mobile:   user.NotifyAccount,
-		WebHook:  user.NotifyURL,
+		WebHook:  user.NotifyToken,
 		Status:   user.Status,
 	}, nil
 }
@@ -69,8 +69,8 @@ func (*userManageImpl) DeleteUser(jobId uint64) error {
 	return models.DeleteUser(jobId)
 }
 
-func (*userManageImpl) ChangeUserStatus(jobId uint64) error{
-	user := models.GetUserByJobId(fmt.Sprintf("%d",jobId))
+func (*userManageImpl) ChangeUserStatus(jobId uint64) error {
+	user := models.GetUserByJobId(fmt.Sprintf("%d", jobId))
 	if user == nil {
 		return errors.New("The user not found!")
 	}
@@ -80,7 +80,7 @@ func (*userManageImpl) ChangeUserStatus(jobId uint64) error{
 	} else {
 		status = 0
 	}
-	return models.ChangeUserStatus(jobId,status)
+	return models.ChangeUserStatus(jobId, status)
 }
 
 func (*userManageImpl) GetUserAll() ([]*viewmodel.User, error) {
@@ -98,7 +98,7 @@ func (*userManageImpl) GetUserAll() ([]*viewmodel.User, error) {
 			JobId:    uint64(jobId),
 			Password: item.Password,
 			Mobile:   item.NotifyAccount,
-			WebHook:  item.NotifyURL,
+			WebHook:  item.NotifyToken,
 			Status:   item.Status,
 		})
 	}

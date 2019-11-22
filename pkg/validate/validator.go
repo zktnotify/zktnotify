@@ -2,7 +2,7 @@ package validate
 
 import (
 	"fmt"
-	"github.com/leaftree/ctnotify/viewmodel"
+	"github.com/zktnotify/zktnotify/viewmodel"
 	"gopkg.in/go-playground/validator.v9"
 )
 

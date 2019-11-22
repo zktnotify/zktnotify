@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/leaftree/ctnotify/pkg/config"
-	jsonresp "github.com/leaftree/ctnotify/pkg/resp"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	jsonresp "github.com/zktnotify/zktnotify/pkg/resp"
 )
 
 func Status(w http.ResponseWriter, r *http.Request) {

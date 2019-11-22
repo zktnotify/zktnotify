@@ -5,14 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"text/template"
 	"time"
 
-	"github.com/leaftree/ctnotify/models"
-	"github.com/leaftree/ctnotify/pkg/config"
-	xnotify "github.com/leaftree/ctnotify/pkg/notify"
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
-	"github.com/leaftree/ctnotify/pkg/shorturl"
+	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	xnotify "github.com/zktnotify/zktnotify/pkg/notify"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/shorturl"
 )
 
 const (
@@ -38,7 +39,7 @@ type ZKTNotifier struct {
 	Date       string
 	Time       string
 	Type       uint64
-	URL        string
+	Token      string
 	account    string
 	NotifyType typed.NotifierType
 }
@@ -50,7 +51,7 @@ func (dtn *ZKTNotifier) Notify() error {
 			return fmt.Errorf("user(%d) not found", dtn.UID)
 		}
 
-		dtn.URL = user.NotifyURL
+		dtn.Token = user.NotifyToken
 		dtn.account = user.NotifyAccount
 		dtn.NotifyType = typed.NotifierType(user.NotifyType)
 
@@ -80,7 +81,7 @@ func (dtn *ZKTNotifier) send() error {
 	if !typed.Valid(dtn.NotifyType) {
 		return errors.New("invalid notification service type")
 	}
-	return xnotify.New(dtn.NotifyType).Notify(dtn.URL, dtn.msgTextTemplate(), typed.Receiver{All: false, ID: []string{dtn.account}})
+	return xnotify.New(dtn.NotifyType).Notify(dtn.Token, dtn.msgTextTemplate(), typed.Receiver{All: false, ID: []string{dtn.account}})
 }
 
 func NewNotifier() chan<- NotifyMessage {
@@ -120,10 +121,20 @@ func delayInWork(uid uint64, cdate, ctime string) bool {
 	if len(cards) == 0 || err != nil {
 		return false
 	}
+	sort.Slice(cards, func(i, j int) bool { return cards[i].CardTime > cards[j].CardTime })
 
-	card := cards[0]
-	delay := uint32(0)
-	for _, item := range config.Config.DelayWorkTime.Item {
+	var (
+		card  = cards[0]
+		delay = uint32(0)
+		items = make([]struct {
+			Time  string `json:"time"`
+			Delay uint32 `json:"delay"`
+		}, len(config.Config.DelayWorkTime.Item))
+	)
+	copy(items, config.Config.DelayWorkTime.Item)
+	sort.Slice(items, func(i, j int) bool { return items[i].Time < items[j].Time })
+
+	for _, item := range items {
 		if card.CardTime < item.Time {
 			break
 		}
@@ -131,7 +142,7 @@ func delayInWork(uid uint64, cdate, ctime string) bool {
 	}
 
 	tt, _ := time.Parse("2006-01-02 15:04:05", cdate+" "+config.Config.WorkTime.Start)
-	if ctime > tt.Add(time.Duration(delay)*time.Second).Format("15:04:05") {
+	if ctime > tt.Add(time.Duration(delay)*time.Minute).Format("15:04:05") {
 		return false
 	}
 	return true

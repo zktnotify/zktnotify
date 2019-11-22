@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leaftree/ctnotify/models"
+	"github.com/zktnotify/zktnotify/models"
 )
 
 func CounterNotice(w http.ResponseWriter, r *http.Request) {

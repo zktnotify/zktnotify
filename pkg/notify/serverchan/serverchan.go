@@ -7,7 +7,11 @@ import (
 	"net/http"
 	httpurl "net/url"
 
-	"github.com/leaftree/ctnotify/pkg/notify/typed"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
+)
+
+const (
+	NotifyHost = "https://sc.ftqq.com"
 )
 
 type ServerChan struct{}
@@ -22,11 +26,12 @@ type responsed struct {
 	DataSet string `json:"dataset"`
 }
 
-func (s *ServerChan) Notify(url string, msg string, receiver ...typed.Receiver) error {
-	if s == nil || url == "" {
+func (s *ServerChan) Notify(token string, msg string, receiver ...typed.Receiver) error {
+	if s == nil || token == "" {
 		return nil
 	}
 
+	url := URL(token)
 	payload := httpurl.Values{}
 	payload.Set("text", msg)
 	payload.Set("desp", "# 测试啦")
@@ -51,4 +56,8 @@ func (s *ServerChan) Notify(url string, msg string, receiver ...typed.Receiver) 
 	}
 
 	return nil
+}
+
+func URL(token string) string {
+	return NotifyHost + "/" + token + ".send"
 }

@@ -115,7 +115,7 @@ func WorkingUsers() (users []User, err error) {
 
 	for rows.Next() {
 		u := User{}
-		if err = rows.Scan(&u.Id, &u.Name, &u.JobID, &u.UserID, &u.Password, &u.NotifyURL, &u.NotifyAccount); err != nil {
+		if err = rows.Scan(&u.Id, &u.Name, &u.JobID, &u.UserID, &u.Password, &u.NotifyToken, &u.NotifyAccount); err != nil {
 			return nil, err
 		}
 		users = append(users, u)
