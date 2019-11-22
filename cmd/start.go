@@ -42,8 +42,13 @@ func GoFunc(f func() error) chan error {
 }
 
 func actionStartServer(c *cli.Context) error {
-	config.NewConfig(c.String("conf"))
 	ctx, canceled := context.WithCancel(context.Background())
+
+	_, err := config.NewConfig(c.String("conf"))
+	if err != nil {
+		log.Println(err)
+		exit(1)
+	}
 
 	logPath := config.Config.LogName()
 	logFd, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)

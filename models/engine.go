@@ -1,12 +1,12 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"path"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/zktnotify/zktnotify/pkg/config"
 	"github.com/zktnotify/zktnotify/pkg/xpath"
 )
@@ -26,15 +26,39 @@ func init() {
 }
 
 func NewEngine() {
-	var err error
-	dbfile := config.Config.XServer.File.DB
-	dbpath := path.Dir(config.Config.XServer.File.DB)
+	var (
+		err       error
+		params    = "?"
+		driver    = ""
+		sourceURL = ""
+	)
 
-	if ok, _ := xpath.IsExists(dbpath); !ok {
-		os.MkdirAll(dbpath, 0755)
+	dbtype := config.Config.XServer.DB.Type
+	if v := os.Getenv("ZKTNOTIFY_DBTYPE"); v != "" {
+		dbtype = v
 	}
 
-	x, err = xorm.NewEngine("sqlite3", dbfile)
+	switch dbtype {
+	case "sqlite3":
+		driver = "sqlite3"
+		sourceURL = config.Config.XServer.DB.Path
+
+		if ok, _ := xpath.IsExists(sourceURL); !ok {
+			os.MkdirAll(sourceURL, 0755)
+		}
+
+	case "mysql":
+		driver = "mysql"
+		sourceURL = fmt.Sprintf("%s:%s@tcp(%s)/%s%scharset=utf8mb4&parseTime=true",
+			config.Config.XServer.DB.User,
+			config.Config.XServer.DB.Password,
+			config.Config.XServer.DB.Host,
+			config.Config.XServer.DB.Name,
+			params,
+		)
+	}
+
+	x, err = xorm.NewEngine(driver, sourceURL)
 	if err != nil {
 		log.Fatal(err)
 	}
