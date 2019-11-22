@@ -51,6 +51,24 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func GetUsers(w http.ResponseWriter, r *http.Request){
+	userMng := service.GetUserManager()
+	users, err := userMng.GetUserAll()
+	if err != nil {
+		resp.RenderJSON(w, resp.JSONResponse{
+			Status:  500,
+			Message: err.Error(),
+		})
+		return
+	}
+	resp.RenderJSON(w, resp.JSONResponse{
+		Status:  200,
+		Message: "OK",
+		Data:    users,
+	})
+	return
+}
+
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_jobId := vars["jobId"]
