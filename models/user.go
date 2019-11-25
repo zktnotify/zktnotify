@@ -53,6 +53,24 @@ func GetUser(uid uint64) *User {
 	return nil
 }
 
+func GetUsers() []*User{
+	rows, err := x.Rows(User{Status: 0})
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	users := make([]*User, 0)
+	for rows.Next() {
+		user := new(User)
+		if err := rows.Scan(user); err != nil {
+			return nil
+		}
+		users = append(users, user)
+	}
+	return users
+}
+
 func GetUserByJobId(jobId string) *User {
 	rows, err := x.Rows(User{JobID: jobId, Status: 0})
 	if err != nil {

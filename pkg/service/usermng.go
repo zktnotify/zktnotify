@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
-
 	"github.com/zktnotify/zktnotify/models"
 	"github.com/zktnotify/zktnotify/viewmodel"
 )
@@ -24,6 +24,7 @@ func GetUserManager() UserManager {
 type UserManager interface {
 	AddUser(user *viewmodel.User) error
 	GetUser(jobId uint64) (*viewmodel.User, error)
+	GetUserAll() ([]*viewmodel.User, error)
 	ChangeUserStatus(jobId uint64) error
 	DeleteUser(jobId uint64) error
 }
@@ -80,4 +81,26 @@ func (*userManageImpl) ChangeUserStatus(jobId uint64) error {
 		status = 0
 	}
 	return models.ChangeUserStatus(jobId, status)
+}
+
+func (*userManageImpl) GetUserAll() ([]*viewmodel.User, error) {
+	users := models.GetUsers()
+	if users == nil {
+		return nil,errors.New("The user is empty")
+	}
+	_users := make([]*viewmodel.User,0)
+	for _,item:=range users {
+		jobId, _ := strconv.ParseInt(item.JobID, 10, 64)
+		_users = append(_users, &viewmodel.User{
+			ID:       uint64(item.Id),
+			Name:     item.Name,
+			UserId:   item.UserID,
+			JobId:    uint64(jobId),
+			Password: item.Password,
+			Mobile:   item.NotifyAccount,
+			WebHook:  item.NotifyToken,
+			Status:   item.Status,
+		})
+	}
+	return _users, nil
 }
