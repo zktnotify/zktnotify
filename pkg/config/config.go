@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -49,8 +50,15 @@ type config struct {
 		File struct {
 			Pid string `json:"pid"`
 			Log string `json:"log"`
-			DB  string `json:"database"`
 		} `json:"file"`
+		DB struct {
+			Type     string `json:"type"`
+			Host     string `json:"host"`
+			User     string `json:"user"`
+			Name     string `json:"db_name"`
+			Password string `json:"password"`
+			Path     string `json:"path"`
+		} `json:"database"`
 		ShortURL struct {
 			Server struct {
 				AppKey  string `json:"appkey"`
@@ -71,7 +79,7 @@ func NewConfig(file ...string) (config, error) {
 	if err != nil {
 		return config{}, err
 	}
-	if err := Config.Validator(); err != nil {
+	if err := cfg.Validator(); err != nil {
 		return config{}, err
 	}
 	Config = *cfg
@@ -91,7 +99,8 @@ func load(filename string) (*config, error) {
 	cfg.XServer.Addr = "0.0.0.0:4567"
 	cfg.XServer.File.Pid = filepath.Join(WorkDir, AppName+".pid")
 	cfg.XServer.File.Log = filepath.Join(WorkDir, AppName+".log")
-	cfg.XServer.File.DB = filepath.Join(WorkDir, "data", "data.db")
+	cfg.XServer.DB.Type = "sqlite3"
+	cfg.XServer.DB.Path = filepath.Join(WorkDir, "data", "data.db")
 	cfg.XServer.ShortURL.Server.AppKey = "5db6aba18e676d1b43de23f6@79e2122d548ba64431f097e6c516774d"
 	cfg.XServer.ShortURL.Server.ApiAddr = "http://api.suolink.cn/api.php"
 	cfg.XServer.ShortURL.PrefixURL = "http://fylos.cn:4567/api/v1"
@@ -127,6 +136,17 @@ func load(filename string) (*config, error) {
 func (cfg config) Validator() error {
 	if cfg.TimeTick < 1 && cfg.TimeTick > 30*60 {
 		return errors.New("config.interval should be from 1 to 1800")
+	}
+
+	dbtype := cfg.XServer.DB.Type
+	switch dbtype {
+	case "sqlite3":
+		if cfg.XServer.DB.Path == "" {
+			return errors.New("sqlite path is not configureated, it'll not use default value")
+		}
+	case "mysql":
+	default:
+		return fmt.Errorf("database type(%s) not supported", dbtype)
 	}
 	return nil
 }

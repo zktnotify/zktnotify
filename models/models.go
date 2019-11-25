@@ -100,7 +100,7 @@ func WorkingUsers() (users []User, err error) {
 	AND
 		n.card_type IN(1,3,4,5,6)
 	AND
-		card_date = '?'
+		card_date = ?
 	WHERE
 		u.status = 0
 	AND
