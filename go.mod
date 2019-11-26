@@ -3,8 +3,10 @@ module github.com/zktnotify/zktnotify
 go 1.12
 
 require (
+	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.16.0 // indirect
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
 	github.com/gorilla/mux v1.7.3
 	github.com/imroc/req v0.2.4

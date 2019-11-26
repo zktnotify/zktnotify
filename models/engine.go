@@ -34,10 +34,6 @@ func NewEngine() {
 	)
 
 	dbtype := config.Config.XServer.DB.Type
-	if v := os.Getenv("ZKTNOTIFY_DBTYPE"); v != "" {
-		dbtype = v
-	}
-
 	switch dbtype {
 	case "sqlite3":
 		driver = "sqlite3"
@@ -49,10 +45,11 @@ func NewEngine() {
 
 	case "mysql":
 		driver = "mysql"
-		sourceURL = fmt.Sprintf("%s:%s@tcp(%s)/%s%scharset=utf8mb4&parseTime=true",
+		sourceURL = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s%scharset=utf8mb4&parseTime=true",
 			config.Config.XServer.DB.User,
 			config.Config.XServer.DB.Password,
 			config.Config.XServer.DB.Host,
+			config.Config.XServer.DB.Port,
 			config.Config.XServer.DB.Name,
 			params,
 		)

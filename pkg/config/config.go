@@ -5,10 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/caarlos0/env"
 	"github.com/zktnotify/zktnotify/pkg/xpath"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 var (
@@ -52,11 +55,12 @@ type config struct {
 			Log string `json:"log"`
 		} `json:"file"`
 		DB struct {
-			Type     string `json:"type"`
-			Host     string `json:"host"`
-			User     string `json:"user"`
-			Name     string `json:"db_name"`
-			Password string `json:"password"`
+			Type     string `json:"type" validate:"required" env:"ZKTNOTIFY_DB_TYPE"`
+			Host     string `json:"host" validate:"required" env:"ZKTNOTIFY_DB_HOST"`
+			Port     uint32 `json:"port" validate:"required" env:"ZKTNOTIFY_DB_PORT" envDefault:"3306"`
+			User     string `json:"user" validate:"required" env:"ZKTNOTIFY_DB_USER"`
+			Name     string `json:"db_name" validate:"required" env:"ZKTNOTIFY_DB_NAME"`
+			Password string `json:"password" env:"ZKTNOTIFY_DB_PASSWORD"`
 			Path     string `json:"path"`
 		} `json:"database"`
 		ShortURL struct {
@@ -79,6 +83,7 @@ func NewConfig(file ...string) (config, error) {
 	if err != nil {
 		return config{}, err
 	}
+
 	if err := cfg.Validator(); err != nil {
 		return config{}, err
 	}
@@ -123,6 +128,10 @@ func load(filename string) (*config, error) {
 		return nil, err
 	}
 
+	if err := env.Parse(&cfg); err != nil {
+		log.Println("parse env variable for configuration failed:", err)
+	}
+
 	dir := filepath.Dir(filename)
 	if f, err := os.Stat(dir); !(err == nil && f.IsDir()) {
 		os.MkdirAll(dir, 0755)
@@ -145,6 +154,9 @@ func (cfg config) Validator() error {
 			return errors.New("sqlite path is not configureated, it'll not use default value")
 		}
 	case "mysql":
+		if err := validator.New().Struct(cfg.XServer.DB); err != nil {
+			return errors.New("mysql config validate check:" + err.Error())
+		}
 	default:
 		return fmt.Errorf("database type(%s) not supported", dbtype)
 	}
