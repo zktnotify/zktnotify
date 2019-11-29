@@ -6,11 +6,12 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/zktnotify/zktnotify/cmd"
+	xversion "github.com/zktnotify/zktnotify/pkg/version"
 )
 
-const (
-	version = "v0.1-alpha"
-	pkg     = "ctnoitfy"
+var (
+	version = xversion.GetVersion()
+	pkg     = "zktnoitfy"
 )
 
 func init() {
@@ -41,6 +42,9 @@ func main() {
 	app.Commands = []cli.Command{
 		cmd.Start,
 		cmd.Stop,
+		cmd.Status,
+		cmd.Version,
+		cmd.Upgrade,
 	}
 
 	if err := app.Run(os.Args); err != nil {

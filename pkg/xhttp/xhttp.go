@@ -1,6 +1,7 @@
 package xhttp
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,12 +21,20 @@ func PostForm(pathname string, data url.Values) ([]byte, error) {
 	return body, nil
 }
 
-func Get(pathname string) ([]byte, error) {
-	rsp, err := http.Get(pathname)
+func Get(pathname string, header ...map[string]interface{}) ([]byte, error) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", pathname, nil)
+
+	for _, h := range header {
+		for k, v := range h {
+			req.Header.Add(k, fmt.Sprint(v))
+		}
+	}
+	rep, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
+	defer rep.Body.Close()
 
-	return ioutil.ReadAll(rsp.Body)
+	return ioutil.ReadAll(rep.Body)
 }
