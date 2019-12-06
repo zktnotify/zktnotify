@@ -44,6 +44,7 @@ func main() {
 		cmd.Status,
 		cmd.Version,
 		cmd.Upgrade,
+		cmd.Release,
 	}
 
 	if err := app.Run(os.Args); err != nil {
