@@ -1,53 +1,51 @@
-#
-# Makefile
-#
-# Copyright (C) 2019 by Liu YunFeng.
-#
-#        Create : 2019-11-25 15:43:21
-# Last Modified : 2019-11-25 15:43:21
-#
-
-RED_COLOR = "\033[1;31m"
-GRN_COLOR = "\033[1;32m"
-YEL_COLOR = "\033[1;33m"
-BLU_COLOR = "\033[1;34m"
-GRA_COLOR = "\033[1;35m"
-SKY_COLOR = "\033[1;36m"
-WHT_COLOR = "\033[1;37m"
-RST_COLOR = "\033[0m"
-
-DIALOG = echo
-QUIET_REMOVE = $(QUIET_RM)rm -f
-
-QUIET_RM  = @printf '%b %b\n' $(RED_COLOR)REMOVE$(RST_COLOR) $(GRN_COLOR)$@$(RST_COLOR) 1>&2;
-
-pkg=zktnotify
-path=github.com/zktnotify/zktnotify/pkg/version
-
-src=$(shell find . -name "*.go" -o -name [Mm]akefile)
-
-version=v1.0.1
-branch=$(shell cat .git/HEAD | awk -F"/" '{print $$3}' )
-buildTime=$(shell date "+%Y-%m-%d %H:%M:%S")
-commitID=$(shell git rev-parse --short HEAD || echo unsupported)
-buildExtTag="-X $(path).version=$(version) -X '$(path).buildTime=$(buildTime)' -X $(path).commitID=$(commitID) -X '$(path).branch=$(branch)'"
-
-default:help
-
-build:$(pkg)
-$(pkg):$(src)
-	@$(DIALOG) $(GRN_COLOR)BUILDING $(WHT_COLOR)$(pkg) $(RST_COLOR)
-	@GOOS=windows GOARCH=amd64 go build -ldflags $(buildExtTag) -o "$@".windows.amd64
-
-all:upload
-deploy:upload
-upload:$(pkg)
-	@$(DIALOG) $(GRN_COLOR)UPLOADING $(WHT_COLOR)$(pkg) $(RST_COLOR)
-
-help:
-	-@$(DIALOG) $(GRN_COLOR)build/$(pkg)$(RST_COLOR) - $(WHT_COLOR)build the project$(RST_COLOR)
-	-@$(DIALOG) $(GRN_COLOR)all/deploy/upload$(RST_COLOR) - $(WHT_COLOR)upload program to github.com$(RST_COLOR)
-
+.DEFAULT:all
 .PHONY:clean
+
+MAJOR=1
+MINOR=0
+PATCH=0
+VER=v$(MAJOR).$(MINOR).$(PATCH)
+
+PKG=zktnotify
+LINUX-AMD64=zktnotify-$(VER)-linux-amd64
+WINDOWS-AMD64=zktnotify-$(VER)-windows-amd64
+
+UPX=$(shell which upx)
+SRC=$(shell find . -name "*.go" -o -name [Mm]akefile)
+
+LDFLAGS=-ldflags "-s -w"
+
+origin:$(SRC)
+	go build -o $(PKG)
+
+all: origin build
+build: linux-amd64 windows-amd64
+
+linux-amd64:$(SRC)
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX-AMD64)
+ifneq ("$(UPX)","")
+	$(UPX) -9 $(LINUX-AMD64)
+endif
+
+windows-amd64:$(SRC)
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(WINDOWS-AMD64)
+ifneq ("$(UPX)","")
+	$(UPX) -9 $(WINDOWS-AMD64)
+endif
+
+release:all
+	-@./$(PKG) release
+	-@echo release finished...
+
+upgrade:
+	-@./$(PKG) upgrade
+	-@echo upgrade finished...
+
+update-version:
+	-@./update_version.sh
+
 clean:
-	$(QUIET_REMOVE) $(pkg)
+	@-go clean
+	@-rm -rf zktnotify
+	@-rm -rf $(LINUX-AMD64)
+	@-rm -rf $(WINDOWS-AMD64)

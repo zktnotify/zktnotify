@@ -1,93 +1,41 @@
 package cmd
 
 import (
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
-	"log"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
+	units "github.com/docker/go-units"
+	"github.com/google/go-github/github"
+	"github.com/leaftree/ctnotify/pkg/config"
 	"github.com/urfave/cli"
-	"github.com/zktnotify/zktnotify/pkg/config"
-	"github.com/zktnotify/zktnotify/pkg/xhttp"
+
+	version "github.com/zktnotify/zktnotify/pkg/version"
 )
 
 var Upgrade = cli.Command{
 	Name:  "upgrade",
-	Usage: "upgrade update server binary",
+	Usage: "upgrade server to a new version",
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "force, f",
 			Usage: "-y/-yes",
 		},
 	},
-	Action: actionUpdate,
+	Action: actionUpgrade,
 }
 
-func actionUpdate(c *cli.Context) error {
-	config.NewConfig(c.String("conf"))
-
-	return upgradeVersion(c)
-}
-
-type Release struct {
-	Version   string `json:"tag_name"`
-	Body      string `json:"body"`
-	CreatedAt string `json:"created_at"`
-}
-
-func githubLatestVersion(repo, name string) (release *Release, err error) {
-	githubURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", repo, name)
-
-	token := githubAccessToken()
-	if token == "" {
-		return nil, fmt.Errorf("fetch latest version failed: github access token not configurated")
-	}
-
-	data, err := xhttp.Get(githubURL, map[string]interface{}{
-		"Authorization": "token " + token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(string(data))
-
-	if err := json.Unmarshal(data, &release); err != nil {
-		return nil, err
-	}
-
-	return release, nil
-}
-
-func githubAccessToken() string {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token != "" {
-		return token
-	}
-
-	return config.Config.XClient.Github.Token
-}
-
-func upgradeVersion(c *cli.Context) error {
-	serverHost := hostname()
-	started, err := isServerStartup()
-	if err != nil {
-		log.Println("get server status failed:", err)
-		return err
-	}
-	if started {
-		if !c.Bool("force") {
-			log.Printf("server(%s) is started up ...\n", serverHost)
-			if !askForConfirmation("Would you like to upgrade [Y/n]? ", false) {
-				return nil
-			}
-		}
-	}
-
-	return githubUpdate(c)
-}
+var (
+	gcli *github.Client
+)
 
 func askForConfirmation(prompt string, _default bool) bool {
 	var response string
@@ -98,56 +46,179 @@ func askForConfirmation(prompt string, _default bool) bool {
 	}
 	response = strings.ToLower(response)
 
-	if strings.HasPrefix("yes", response) {
+	switch response {
+	case "y", "ye", "yes":
 		return true
-	} else if strings.HasPrefix("not", response) {
+	case "n", "no", "not":
 		return false
-	} else {
+	default:
 		return askForConfirmation(prompt, _default)
 	}
-
-	return false
 }
 
-func githubUpdate(c *cli.Context) error {
-	repo, name := "zktnotify", "ctnotify"
-	tag, err := githubLatestVersion(repo, name)
+func upgradeComfirmReplace(c *cli.Context) bool {
+	serverHost := hostname()
+	started, err := isServerStartup()
 	if err != nil {
-		fmt.Println("Update failed:", err)
+		fmt.Println("get server status failed:", err)
+		return false
+	}
+	if started {
+		if !c.Bool("force") {
+			fmt.Printf("server(%s) is started up ...\n", serverHost)
+			return askForConfirmation("Would you like to upgrade [Y/n]? ", false)
+		}
+	}
+	return true
+}
+
+func upgradeComfirmVersion(release *github.RepositoryRelease) bool {
+	if *release.TagName < version.Version() {
+		fmt.Printf("current version: %s, latest version in github.com: %s\n", version.Version(), *release.TagName)
+		return askForConfirmation("Current version looks even higher, confirm to upgrade [Y/n]? ", false)
+	} else if *release.TagName == version.Version() {
+		fmt.Println("this is the latest version")
+		return false
+	}
+	return true
+}
+
+func githubLatestVersion(owner, repo string) (release *github.RepositoryRelease, err error) {
+	grep, _, err := gcli.Repositories.GetLatestRelease(context.Background(), owner, repo)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return grep, nil
+}
+
+func downloadProgramPackage(release *github.RepositoryRelease) (string, error) {
+	namePrefix := fmt.Sprintf("zktnotify-v[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,3}-%s-%s", runtime.GOOS, runtime.GOARCH)
+	reg := regexp.MustCompile(namePrefix)
+
+	var asset *github.ReleaseAsset
+
+	for _, val := range release.Assets {
+		if reg.MatchString(*val.Name) {
+			asset = &val
+			break
+		}
+	}
+	if asset == nil {
+		return "", errors.New("No program package match you machine")
+	}
+
+	fmt.Println(*asset.Name, "will be downloaded,", units.HumanSize(float64(*asset.Size)), "...")
+
+	reader, url, err := gcli.Repositories.DownloadReleaseAsset(context.Background(), owner, repo, *asset.ID)
+	if err != nil {
+		return "", err
+	}
+	if url != "" {
+		resp, err := http.Get(url)
+		if err != nil {
+			return "", err
+		}
+		reader = resp.Body
+	}
+	defer reader.Close()
+
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
+	// create version save directory
+	os.Mkdir(filepath.Join(config.WorkDir, ".version"), 0755)
+
+	fileName := filepath.Join(config.WorkDir, ".version", *asset.Name)
+	return fileName, ioutil.WriteFile(fileName, data, 0754)
+}
+
+func duplicateFile(new, old string) error {
+	fstat, err := os.Stat(old)
+	if os.IsNotExist(err) {
 		return err
 	}
-	/*
-		if tag.Version == version {
-			fmt.Println("No update available, already at the latest version!")
-			return nil
-		}
-	*/
 
-	fmt.Println("New version available -- ", tag.Version)
-	fmt.Print(tag.Body)
-
-	if !c.Bool("force") {
-		if !askForConfirmation("Would you like to update [Y/n]? ", true) {
-			return nil
-		}
+	freader, rerr := os.OpenFile(old, os.O_RDWR, 0775)
+	if rerr != nil {
+		return rerr
 	}
-	fmt.Printf("New version available: %s downloading ... \n", tag.Version)
+	defer freader.Close()
 
-	cleanVersion := tag.Version
-	if strings.HasPrefix(cleanVersion, "v") {
-		cleanVersion = cleanVersion[1:]
+	fwriter, werr := os.OpenFile(new, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
+	if werr != nil {
+		return werr
 	}
-	osArch := runtime.GOOS + "_" + runtime.GOARCH
+	defer fwriter.Close()
 
-	downloadURL := fmt.Sprintf("https://github.com/{repo}/{name}/releases/download/{tag}/{name}_{version}_{os_arch}.tar.gz", map[string]interface{}{
-		"repo":    "codeskyblue",
-		"name":    "gosuv",
-		"tag":     tag.Version,
-		"version": cleanVersion,
-		"os_arch": osArch,
-	})
-	fmt.Println("Not finished yet. download from:", downloadURL)
-
+	written, err := io.Copy(fwriter, freader)
+	if err != nil {
+		return err
+	}
+	if written != fstat.Size() {
+		return errors.New("duplicate abort")
+	}
 	return nil
+}
 
+func lookupExec(pathname string) string {
+	pattern := "zktnotify"
+	rd, err := ioutil.ReadDir(pathname)
+	if err != nil {
+		return ""
+	}
+	for _, dir := range rd {
+		if dir.Mode().Perm()&os.ModeSymlink != 0 && dir.Mode().Perm()&0700 != 0 {
+			if ok, _ := regexp.MatchString(pattern, dir.Name()); ok {
+				return dir.Name()
+			}
+		}
+	}
+	return ""
+}
+
+func updateExecuteFiles(c *cli.Context, file string) error {
+	var exec = lookupExec(config.WorkDir)
+
+	if exec != "" {
+		os.Remove(exec)
+	}
+
+	return os.Symlink(file, filepath.Join(config.WorkDir, "zktnotify"))
+}
+
+func actionUpgrade(c *cli.Context) error {
+	config.NewConfig(c.String("conf"))
+	gcli = github.NewClient(httpClient())
+
+	grep, err := githubLatestVersion(owner, repo)
+	if err != nil {
+		return err
+	}
+	if !upgradeComfirmVersion(grep) {
+		return nil
+	}
+
+	file, err := downloadProgramPackage(grep)
+	if err != nil {
+		return err
+	}
+
+	if !upgradeComfirmReplace(c) {
+		return nil
+	}
+
+	if err := updateExecuteFiles(c, file); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	// TODO: restart
+	// TODO: process bar of downloading file
+	// TODO: download in sections, don't write the whole file after downloading
+	// all response
+	// TODO: check package has been downloaded and verification downloaded package
+	return nil
 }

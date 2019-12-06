@@ -6,12 +6,11 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/zktnotify/zktnotify/cmd"
-	xversion "github.com/zktnotify/zktnotify/pkg/version"
+	version "github.com/zktnotify/zktnotify/pkg/version"
 )
 
 var (
-	version = xversion.GetVersion()
-	pkg     = "zktnoitfy"
+	pkg = "zktnoitfy"
 )
 
 func init() {
@@ -23,7 +22,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = pkg
 	app.Usage = "一个打卡消息推送服务，推送上班、下班打卡消息；并且过了下班时间后提示你记得打卡"
-	app.Version = version
+	app.Version = version.Version()
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "fylos",

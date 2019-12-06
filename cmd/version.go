@@ -15,6 +15,6 @@ var Version = cli.Command{
 }
 
 func actionVersion(c *cli.Context) error {
-	fmt.Println(version.FullVersion())
+	fmt.Println(version.Version())
 	return nil
 }
