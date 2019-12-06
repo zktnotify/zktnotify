@@ -46,6 +46,9 @@ type config struct {
 		Server struct {
 			Addr string `json:"addr"`
 		} `json:"server"`
+		Github struct {
+			Token string `json:"token"`
+		} `json:"github"`
 	} `json:"xclient"`
 	XServer struct {
 		Addr string `json:"addr"`
