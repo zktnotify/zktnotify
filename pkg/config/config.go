@@ -131,7 +131,7 @@ func load(filename string) (*config, error) {
 		return nil, err
 	}
 
-	if err := env.Parse(&cfg); err != nil {
+	if err := env.Parse(cfg); err != nil {
 		log.Println("parse env variable for configuration failed:", err)
 	}
 
