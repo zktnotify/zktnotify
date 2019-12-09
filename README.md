@@ -5,7 +5,7 @@
 If you want to use sqlite as your store database, you should make it supporting.
 go complier option `tag` can finish the work:
 ```bash
-go build -tag sqlite github.com/zktnotify/zktnotify -o zktnotify
+go build -tags sqlite3 -o zktnotify
 ```
 
 ## Configuration

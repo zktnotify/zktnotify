@@ -36,7 +36,8 @@ type config struct {
 		} `json:"item"`
 	} `json:"delayworktime"`
 	ZKTServer struct {
-		URL struct {
+		Host string `json:"host"`
+		URL  struct {
 			Login   string `json:"login"`
 			UserID  string `json:"userid"`
 			TimeTag string `json:"timetag"`
@@ -101,15 +102,15 @@ func load(filename string) (*config, error) {
 	cfg.WorkTime.End = "18:00:00"
 	cfg.WorkTime.Start = "09:15:59"
 	cfg.WorkEnd.NotificationTick = 1800
-	cfg.ZKTServer.URL.UserID = "http://money.fylos.cn:1234/selfservice/selfreport/"
-	cfg.ZKTServer.URL.Login = "http://money.fylos.cn:1234/selfservice/login/" // XXX:host route-path split
-	cfg.ZKTServer.URL.TimeTag = "http://money.fylos.cn:1234/grid/att/CardTimes/"
+	cfg.ZKTServer.URL.UserID = "/selfservice/selfreport/"
+	cfg.ZKTServer.URL.Login = "/selfservice/login/"
+	cfg.ZKTServer.URL.TimeTag = "/grid/att/CardTimes/"
 	cfg.XServer.Addr = "0.0.0.0:4567"
 	cfg.XServer.File.Pid = filepath.Join(WorkDir, AppName+".pid")
 	cfg.XServer.File.Log = filepath.Join(WorkDir, AppName+".log")
 	cfg.XServer.DB.Type = "sqlite3"
 	cfg.XServer.DB.Path = filepath.Join(WorkDir, "data", "data.db")
-	cfg.XServer.ShortURL.Server.AppKey = "5db6aba18e676d1b43de23f6@79e2122d548ba64431f097e6c516774d"
+	cfg.XServer.ShortURL.Server.AppKey = ""
 	cfg.XServer.ShortURL.Server.ApiAddr = "http://api.suolink.cn/api.php"
 	cfg.XServer.ShortURL.PrefixURL = "http://fylos.cn:4567/api/v1"
 	cfg.XClient.Server.Addr = "http://127.0.0.1:4567"
@@ -142,6 +143,10 @@ func load(filename string) (*config, error) {
 	data, _ = json.MarshalIndent(cfg, "", "\t")
 	ioutil.WriteFile(filename, data, 0644)
 
+	cfg.ZKTServer.URL.Login = cfg.ZKTServer.Host + cfg.ZKTServer.URL.Login
+	cfg.ZKTServer.URL.UserID = cfg.ZKTServer.Host + cfg.ZKTServer.URL.UserID
+	cfg.ZKTServer.URL.TimeTag = cfg.ZKTServer.Host + cfg.ZKTServer.URL.TimeTag
+
 	return cfg, nil
 }
 
@@ -163,6 +168,17 @@ func (cfg config) Validator() error {
 	default:
 		return fmt.Errorf("database type(%s) not supported", dbtype)
 	}
+
+	if cfg.ZKTServer.Host == "" {
+		return errors.New(" zkt server host is required")
+	}
+
+	if cfg.XServer.ShortURL.Server.ApiAddr != "" {
+		if cfg.XServer.ShortURL.Server.AppKey == "" {
+			return errors.New("short server app key is required")
+		}
+	}
+
 	return nil
 }
 
