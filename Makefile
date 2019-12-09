@@ -19,7 +19,7 @@ LDFLAGS=-ldflags "-s -w"
 origin:$(SRC)
 	go build -o $(PKG)
 
-all: origin build sqlite
+all: origin build
 build: linux-amd64 windows-amd64
 
 linux-amd64:$(SRC)
