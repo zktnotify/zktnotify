@@ -1,6 +1,6 @@
 FROM golang:1.12.9 AS go-builder
 
-ENV APP_NAME ctnotify
+ENV APP_NAME zktnotify
 ENV GOPROXY=https://goproxy.io
 ENV GO111MODULE on
 
@@ -21,12 +21,12 @@ RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
 FROM centos:8 as prod
 MAINTAINER "leaftree <leaftree@github.com>"
 
-WORKDIR /ctnotify
+WORKDIR /zktnotify
 
 COPY --from=go-builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-COPY --from=go-builder /ctnotify/ctnotify /ctnotify/ctnotify
-COPY ./run.sh /ctnotify/run.sh
+COPY --from=go-builder /zktnotify/zktnotify /zktnotify/zktnotify
+COPY ./run.sh /zktnotify/run.sh
 
 EXPOSE 4567 4567
 
-CMD ["/ctnotify/ctnotify","start","-f"]
+CMD ["/zktnotify/zktnotify","start","-f"]

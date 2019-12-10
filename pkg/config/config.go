@@ -9,8 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/caarlos0/env"
 	"github.com/zktnotify/zktnotify/pkg/xpath"
+
+	"github.com/caarlos0/env"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -73,11 +74,13 @@ type config struct {
 				ApiAddr string `json:"address"`
 			} `json:"server"`
 			PrefixURL string `json:"prefixurl"`
-		} `shorturl`
+		} `json:"shorturl"`
 	} `json:"xserver"`
 }
 
-func NewConfig(file ...string) (config, error) {
+// NewConfig create a new config object
+//  if check is true, it'll check if all configuration are valid
+func NewConfig(check bool, file ...string) (config, error) {
 	filename := filepath.Join(WorkDir, "config.json")
 	if len(file) != 0 && file[0] != "" {
 		filename = file[0]
@@ -88,8 +91,10 @@ func NewConfig(file ...string) (config, error) {
 		return config{}, err
 	}
 
-	if err := cfg.Validator(); err != nil {
-		return config{}, err
+	if check {
+		if err := cfg.Validator(); err != nil {
+			return config{}, err
+		}
 	}
 	Config = *cfg
 	return Config, nil
@@ -170,7 +175,7 @@ func (cfg config) Validator() error {
 	}
 
 	if cfg.ZKTServer.Host == "" {
-		return errors.New(" zkt server host is required")
+		return errors.New("zkt server host is required")
 	}
 
 	if cfg.XServer.ShortURL.Server.ApiAddr != "" {

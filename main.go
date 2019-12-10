@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/zktnotify/zktnotify/cmd"
-	version "github.com/zktnotify/zktnotify/pkg/version"
+	"github.com/zktnotify/zktnotify/pkg/version"
 )
 
 var (

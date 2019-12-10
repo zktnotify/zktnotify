@@ -44,7 +44,7 @@ func GoFunc(f func() error) chan error {
 func actionStartServer(c *cli.Context) error {
 	ctx, canceled := context.WithCancel(context.Background())
 
-	_, err := config.NewConfig(c.String("conf"))
+	_, err := config.NewConfig(true, c.String("conf"))
 	if err != nil {
 		log.Println(err)
 		exit(1)
@@ -57,7 +57,7 @@ func actionStartServer(c *cli.Context) error {
 	}
 
 	if c.Bool("foreground") {
-		config.NewConfig(c.String("conf"))
+		config.NewConfig(true, c.String("conf"))
 		models.NewEngine()
 		service.Service(ctx)
 

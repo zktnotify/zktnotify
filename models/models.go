@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	EnableSQLite = false
+)
+
 type Times string
 
 type TimeTag struct {

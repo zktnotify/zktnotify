@@ -1,2 +1,2 @@
 #!/bin/bash
-/ctnotify/ctnotify start -f
+/zktnotify/zktnotify start -f

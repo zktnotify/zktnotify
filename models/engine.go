@@ -39,6 +39,10 @@ func NewEngine() {
 		driver = "sqlite3"
 		sourceURL = config.Config.XServer.DB.Path
 
+		if !EnableSQLite {
+			log.Fatal("this version not supported sqlite, use MySQL please")
+		}
+
 		if ok, _ := xpath.IsExists(sourceURL); !ok {
 			os.MkdirAll(sourceURL, 0755)
 		}

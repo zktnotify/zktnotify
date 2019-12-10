@@ -25,7 +25,7 @@ var Status = cli.Command{
 }
 
 func actionStatus(c *cli.Context) error {
-	config.NewConfig(c.String("conf"))
+	config.NewConfig(false, c.String("conf"))
 
 	serverHost := hostname()
 

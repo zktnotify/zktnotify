@@ -27,7 +27,7 @@ var Stop = cli.Command{
 }
 
 func actionStop(c *cli.Context) error {
-	config.NewConfig(c.String("conf"))
+	config.NewConfig(false, c.String("conf"))
 
 	url := config.Config.XClient.Server.Addr + "/api/v1/shutdown"
 	resp, err := xhttp.Get(url)

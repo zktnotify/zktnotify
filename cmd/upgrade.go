@@ -15,10 +15,10 @@ import (
 
 	units "github.com/docker/go-units"
 	"github.com/google/go-github/github"
-	"github.com/leaftree/ctnotify/pkg/config"
 	"github.com/urfave/cli"
 
-	version "github.com/zktnotify/zktnotify/pkg/version"
+	"github.com/zktnotify/zktnotify/pkg/config"
+	"github.com/zktnotify/zktnotify/pkg/version"
 )
 
 var Upgrade = cli.Command{
@@ -163,34 +163,37 @@ func duplicateFile(new, old string) error {
 	return nil
 }
 
-func lookupExec(pathname string) string {
+func lookupExec(pathname string) []string {
+	exec := []string{}
 	pattern := "zktnotify"
 	rd, err := ioutil.ReadDir(pathname)
 	if err != nil {
-		return ""
+		return exec
 	}
 	for _, dir := range rd {
-		if dir.Mode().Perm()&os.ModeSymlink != 0 && dir.Mode().Perm()&0700 != 0 {
-			if ok, _ := regexp.MatchString(pattern, dir.Name()); ok {
-				return dir.Name()
-			}
+		if ok, _ := regexp.MatchString(pattern, dir.Name()); ok {
+			exec = append(exec, dir.Name())
 		}
 	}
-	return ""
+	return exec
 }
 
 func updateExecuteFiles(c *cli.Context, file string) error {
 	var exec = lookupExec(config.WorkDir)
 
-	if exec != "" {
-		os.Remove(exec)
+	for _, file := range exec {
+		os.Remove(filepath.Join(config.WorkDir, file))
 	}
 
 	return os.Symlink(file, filepath.Join(config.WorkDir, "zktnotify"))
 }
 
 func actionUpgrade(c *cli.Context) error {
-	config.NewConfig(c.String("conf"))
+	_, err := config.NewConfig(false, c.String("conf"))
+	if err != nil {
+		fmt.Println(err)
+		exit(1)
+	}
 	gcli = github.NewClient(httpClient())
 
 	grep, err := githubLatestVersion(owner, repo)
