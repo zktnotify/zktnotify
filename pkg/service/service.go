@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -18,8 +19,10 @@ import (
 func Service(ctx context.Context) {
 	go func() {
 		for {
+			duration := cardDuration()
+
 			select {
-			case <-time.After(time.Duration(config.Config.TimeTick) * time.Second):
+			case <-time.After(duration):
 				if err := RetrieveCardTime(RetrieveAllUsers()); err != nil {
 					log.Println(err)
 				}
@@ -255,4 +258,42 @@ func sleepDuration() int {
 	}
 
 	return tick
+}
+
+// cardDuration caculate access card time server interval
+// using default value within 30 minutes before and after work or work end
+// otherwise, access once in 10 minutes
+func cardDuration() time.Duration {
+	var (
+		timeRange    = 30 * 60
+		defaultTick  = time.Duration(config.Config.TimeTick) * time.Second
+		outRangeTick = 10 * time.Minute
+
+		mktime = func(suffix string) (time.Time, error) {
+			return time.Parse("2006/01/02 15:04:05",
+				fmt.Sprintf("%s %s", time.Now().Format("2006/01/02"), suffix))
+		}
+		inscope = func(wtime int64) bool {
+			if int(math.Abs(float64(time.Now().Unix()-wtime))) < timeRange {
+				return true
+			}
+			return false
+		}
+	)
+
+	workTimeEnd, err1 := mktime(config.Config.WorkTime.End)
+	workTimeStart, err2 := mktime(config.Config.WorkTime.Start)
+	if err1 != nil || err2 != nil {
+		err := err1
+		if err == nil {
+			err = err2
+		}
+		log.Println("mktime failed:", err)
+		return defaultTick
+	}
+
+	if inscope(workTimeStart.Unix()) || inscope(workTimeEnd.Unix()) {
+		return defaultTick
+	}
+	return outRangeTick
 }
