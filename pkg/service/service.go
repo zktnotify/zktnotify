@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -265,19 +264,21 @@ func sleepDuration() int {
 // otherwise, access once in 10 minutes
 func cardDuration() time.Duration {
 	var (
-		timeRange    = 30 * 60
+		timeRange    = int64(30 * 60)
 		defaultTick  = time.Duration(config.Config.TimeTick) * time.Second
 		outRangeTick = 10 * time.Minute
 
 		mktime = func(suffix string) (time.Time, error) {
-			return time.Parse("2006/01/02 15:04:05",
-				fmt.Sprintf("%s %s", time.Now().Format("2006/01/02"), suffix))
+			return time.ParseInLocation("2006/01/02 15:04:05",
+				fmt.Sprintf("%s %s", time.Now().Format("2006/01/02"), suffix),
+				time.Local)
 		}
 		inscope = func(wtime int64) bool {
-			if int(math.Abs(float64(time.Now().Unix()-wtime))) < timeRange {
-				return true
+			max, min := wtime, time.Now().Local().Unix()
+			if max < min {
+				max, min = min, max
 			}
-			return false
+			return max-min < timeRange
 		}
 	)
 

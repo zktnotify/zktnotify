@@ -42,6 +42,12 @@ if [ "$(command -v gofmt)" != "" ]; then
 fi
 }
 
+function list_version_tag() {
+	if [ "$(command -v git)" != "" ]; then
+		git tag
+	fi
+}
+
 function read_version(){
 	read -p "Major version: " -n2 VERSION_MAJOR
 	read -p "Minor version: " -n2 VERSION_MINOR
@@ -55,6 +61,7 @@ function update_makefile(){
 	eval sed -i '/^PATCH=*/c\PATCH=${VERSION_PATCH}' ${VERSION_MAKEFILE}
 }
 
+list_version_tag
 read_version
 update_makefile
 generate_version_file
