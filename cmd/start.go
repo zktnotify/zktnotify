@@ -14,6 +14,7 @@ import (
 	"github.com/zktnotify/zktnotify/models"
 	"github.com/zktnotify/zktnotify/pkg/config"
 	"github.com/zktnotify/zktnotify/pkg/service"
+	"github.com/zktnotify/zktnotify/pkg/version"
 	"github.com/zktnotify/zktnotify/router"
 )
 
@@ -75,7 +76,8 @@ func actionStartServer(c *cli.Context) error {
 				exit(0)
 			}
 		}()
-		log.Printf("server started, listening on %s\n", config.Config.XServer.Addr)
+		log.Printf("server(%s) started, listening on %s\n",
+			version.Version(), config.Config.XServer.Addr)
 		catchExitSignal(syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
 		canceled()
 	} else {

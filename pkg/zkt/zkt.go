@@ -84,14 +84,3 @@ func GetTimeTag(url string, uid uint64, start, end time.Time) (_ *models.TimeTag
 	}
 	return &data, nil
 }
-
-func OvertimeReturn(over string) string {
-	if over >= "20:00:00" && over < "21:00:00" {
-		return "09:30:00"
-	} else if over >= "21:00:00" && over < "22:00:00" {
-		return "10:30:00"
-	} else if over >= "22:00:00" {
-		return "11:00:00"
-	}
-	return "09:15:00"
-}
