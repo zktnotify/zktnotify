@@ -3,6 +3,7 @@ module github.com/zktnotify/zktnotify
 go 1.13
 
 require (
+	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/docker/go-units v0.4.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect

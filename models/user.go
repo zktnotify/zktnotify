@@ -13,7 +13,7 @@ type User struct {
 	UserID        uint64    `xorm:"user_id"`
 	Password      string    `xorm:"password"`
 	NotifyToken   string    `xorm:"notify_url"`
-	NotifyType    uint32    `xorm:"DEFAULT 0 'notify_type'"`
+	NotifyType    uint32    `xorm:"DEFAULT 0 'notify_type'"` // 0 dingding, 1 serverChan, 2 wxpusher
 	NotifyAccount string    `xorm:"notify_account"`
 	CreateTime    time.Time `xorm:"-"`
 	CreateUnix    int64     `xorm:"'create_time'"`
@@ -53,7 +53,7 @@ func GetUser(uid uint64) *User {
 	return nil
 }
 
-func GetUsers() []*User{
+func GetUsers() []*User {
 	rows, err := x.Rows(User{Status: 0})
 	if err != nil {
 		return nil

@@ -95,7 +95,7 @@ func RetrieveCardTime(users []models.User) error {
 
 			if !cardTimeMatched(cardTimes, cardTime) {
 
-				NewNotifier() <- NotifyMessage{
+				NewNotifier() <- Notification{
 					UserID: tag.UserID,
 					Name:   tag.Name,
 					Date:   tag.CardDate,
@@ -116,18 +116,20 @@ func RetrieveCardTime(users []models.User) error {
 func getTodayCardTime(user models.User) (*models.TimeTag, error) {
 	var err error
 
-	if err := zkt.Login(config.Config.ZKTServer.URL.Login, user.JobID, user.Password); err != nil {
-		return nil, fmt.Errorf("login failed: %w", err)
-	}
-
-	if user.UserID == 0 {
-		if user.UserID, err = zkt.GetUserID(config.Config.ZKTServer.URL.UserID); err != nil {
-			return nil, fmt.Errorf("retrieve user id failed: %w", err)
+	if !zkt.HasCookie(user.JobID, user.UserID) {
+		if err = zkt.Login(user.JobID, user.UserID, user.Password); err != nil {
+			return nil, fmt.Errorf("login failed: %w", err)
 		}
-		user.UpdateUserID()
+
+		if user.UserID == 0 {
+			if user.UserID, err = zkt.GetUserID(user.JobID); err != nil {
+				return nil, fmt.Errorf("retrieve user id failed: %w", err)
+			}
+			user.UpdateUserID()
+		}
 	}
 
-	timeTag, err := zkt.GetTimeTag(config.Config.ZKTServer.URL.TimeTag, user.UserID, time.Now(), time.Now())
+	timeTag, err := zkt.GetTimeTag(user.UserID, time.Now(), time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("get time tag failed: %w", err)
 	}
@@ -159,7 +161,7 @@ func cardTimeMatched(pattern []models.CardTime, match models.CardTime) bool {
 var lastNotifiedTime int64
 
 func CardTimeNotification(users []models.User) error {
-	ctype := uint64(Remind)
+	ctype := typed.Remind
 	cdate := time.Now().Format("2006-01-02")
 	ctime := func() string { return time.Now().Format("15:04:05") }
 
@@ -176,24 +178,25 @@ func CardTimeNotification(users []models.User) error {
 	}
 
 	for _, user := range users {
-		if models.IsNotified(user.UserID, cdate, uint64(Worked)) {
+		if models.IsNotified(user.UserID, cdate, uint64(typed.Worked)) {
 			continue
 		}
 		if !models.CanNotify(user.UserID, cdate) {
 			continue
 		}
 
-		dingtalk := ZKTNotifier{
-			UID:        user.UserID,
+		nc := Notification{
+			UserID:     user.UserID,
 			Name:       user.Name,
 			Date:       cdate,
 			Time:       ctime(),
-			Type:       ctype,
+			Type:       typed.OffWork,
+			Status:     ctype,
 			NotifyType: typed.NotifierType(user.NotifyType),
 			Token:      user.NotifyToken,
 		}
-		dingtalk.send()
-		models.UpdateNotice(user.UserID, ctype, cdate, ctime())
+		nc.send()
+		models.UpdateNotice(user.UserID, uint64(ctype), cdate, ctime())
 	}
 	lastNotifiedTime = time.Now().Unix()
 	return nil

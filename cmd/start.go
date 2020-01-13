@@ -15,6 +15,7 @@ import (
 	"github.com/zktnotify/zktnotify/pkg/config"
 	"github.com/zktnotify/zktnotify/pkg/service"
 	"github.com/zktnotify/zktnotify/pkg/version"
+	"github.com/zktnotify/zktnotify/pkg/zkt"
 	"github.com/zktnotify/zktnotify/router"
 )
 
@@ -45,8 +46,20 @@ func GoFunc(f func() error) chan error {
 func actionStartServer(c *cli.Context) error {
 	ctx, canceled := context.WithCancel(context.Background())
 
+	// TODO 不需要初始化多次
+
 	_, err := config.NewConfig(true, c.String("conf"))
 	if err != nil {
+		log.Println(err)
+		exit(1)
+	}
+
+	if err := zkt.RegisterURL(
+		config.Config.ZKTServer.Host,
+		config.Config.ZKTServer.URL.Login,
+		config.Config.ZKTServer.URL.UserID,
+		config.Config.ZKTServer.URL.TimeTag,
+	); err != nil {
 		log.Println(err)
 		exit(1)
 	}
@@ -59,6 +72,12 @@ func actionStartServer(c *cli.Context) error {
 
 	if c.Bool("foreground") {
 		config.NewConfig(true, c.String("conf"))
+		zkt.RegisterURL(
+			config.Config.ZKTServer.Host,
+			config.Config.ZKTServer.URL.Login,
+			config.Config.ZKTServer.URL.UserID,
+			config.Config.ZKTServer.URL.TimeTag,
+		)
 		models.NewEngine()
 		service.Service(ctx)
 

@@ -4,13 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zktnotify/zktnotify/router/usermng"
-
 	"github.com/gorilla/mux"
+
 	jsonresp "github.com/zktnotify/zktnotify/pkg/resp"
 	"github.com/zktnotify/zktnotify/router/notify"
 	"github.com/zktnotify/zktnotify/router/server"
+	"github.com/zktnotify/zktnotify/router/usermng"
+	"github.com/zktnotify/zktnotify/router/wxpusher"
 )
+
+func init() {
+	http.Handle("/", http.FileServer(http.Dir("../dist")))
+}
 
 func NewApiMux() *mux.Router {
 	r := mux.NewRouter()
@@ -36,6 +41,8 @@ func regRouter(r *mux.Router) {
 	v1s.HandleFunc("/user/{jobId}", usermng.GetUser).Methods("GET")
 	v1s.HandleFunc("/user/{jobId}", usermng.DeleteUser).Methods("DELETE")
 	v1s.HandleFunc("/user/{jobId}", usermng.ChangeUserStatus).Methods("PUT")
+
+	r.HandleFunc("/api/wxpusher/signup", wxpusher.Signup).Methods("POST")
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

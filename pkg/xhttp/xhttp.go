@@ -38,3 +38,25 @@ func Get(pathname string, header ...map[string]interface{}) ([]byte, error) {
 
 	return ioutil.ReadAll(rep.Body)
 }
+
+func GetWithCookie(pathname string, ck *http.Cookie, header ...map[string]interface{}) ([]byte, error) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", pathname, nil)
+
+	if ck != nil {
+		req.AddCookie(ck)
+	}
+
+	for _, h := range header {
+		for k, v := range h {
+			req.Header.Add(k, fmt.Sprint(v))
+		}
+	}
+	rep, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer rep.Body.Close()
+
+	return ioutil.ReadAll(rep.Body)
+}

@@ -75,6 +75,9 @@ type config struct {
 			} `json:"server"`
 			PrefixURL string `json:"prefixurl"`
 		} `json:"shorturl"`
+		NotificationServer struct {
+			AppToken string `json:"app_token"`
+		} `json:"notification_server"`
 	} `json:"xserver"`
 }
 
@@ -148,10 +151,6 @@ func load(filename string) (*config, error) {
 	data, _ = json.MarshalIndent(cfg, "", "\t")
 	ioutil.WriteFile(filename, data, 0644)
 
-	cfg.ZKTServer.URL.Login = cfg.ZKTServer.Host + cfg.ZKTServer.URL.Login
-	cfg.ZKTServer.URL.UserID = cfg.ZKTServer.Host + cfg.ZKTServer.URL.UserID
-	cfg.ZKTServer.URL.TimeTag = cfg.ZKTServer.Host + cfg.ZKTServer.URL.TimeTag
-
 	return cfg, nil
 }
 
@@ -172,10 +171,6 @@ func (cfg config) Validator() error {
 		}
 	default:
 		return fmt.Errorf("database type(%s) not supported", dbtype)
-	}
-
-	if cfg.ZKTServer.Host == "" {
-		return errors.New("zkt server host is required")
 	}
 
 	if cfg.XServer.ShortURL.Server.ApiAddr != "" {
