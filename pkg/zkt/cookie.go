@@ -6,17 +6,21 @@ import (
 )
 
 var (
-	users   = map[string]uint64{}
-	cookies = map[uint64]http.Cookie{}
-	mux     = sync.Mutex{}
+	ncookies = map[string]*http.Cookie{}
+	ucookies = map[uint64]*http.Cookie{}
+	mux      = sync.Mutex{}
 )
 
-func CookieSet(jid string, uid uint64, ck http.Cookie) {
+func CookieSet(jid string, uid uint64, ck *http.Cookie) {
 	mux.Lock()
 	defer mux.Unlock()
 
-	users[jid] = uid
-	cookies[uid] = ck
+	if jid != "" {
+		ncookies[jid] = ck
+	}
+	if uid != 0 {
+		ucookies[uid] = ck
+	}
 }
 
 func CookieGet(name string, id uint64) (http.Cookie, bool) {
@@ -24,16 +28,23 @@ func CookieGet(name string, id uint64) (http.Cookie, bool) {
 	defer mux.Unlock()
 
 	if id != 0 {
-		ck, ok := cookies[id]
-		return ck, ok
+		ck, ok := ucookies[id]
+		return *ck, ok
 	}
 	if name != "" {
-		if uid, ok := users[name]; ok {
-			ck, ok := cookies[uid]
-			return ck, ok
-		}
+		ck, ok := ncookies[name]
+		return *ck, ok
 	}
 	return http.Cookie{}, false
+}
+
+func CookieUpdate(name string, id uint64) {
+	mux.Lock()
+	defer mux.Unlock()
+
+	if ck, ok := ncookies[name]; id != 0 && ok {
+		ucookies[id] = ck
+	}
 }
 
 func HasCookie(jobID string, userID uint64) bool {
@@ -41,16 +52,14 @@ func HasCookie(jobID string, userID uint64) bool {
 	defer mux.Unlock()
 
 	if userID != 0 {
-		if _, ok := cookies[userID]; ok {
+		if _, ok := ucookies[userID]; ok {
 			return true
 		}
 		return false
 	}
 	if jobID != "" {
-		if uid, ok := users[jobID]; ok {
-			if _, ok := cookies[uid]; ok {
-				return true
-			}
+		if _, ok := ncookies[jobID]; ok {
+			return true
 		}
 	}
 	return false

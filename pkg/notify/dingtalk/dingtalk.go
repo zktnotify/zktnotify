@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"text/template"
 
-	"github.com/alecthomas/template"
 	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 

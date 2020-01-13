@@ -13,10 +13,6 @@ import (
 	"github.com/zktnotify/zktnotify/router/wxpusher"
 )
 
-func init() {
-	http.Handle("/", http.FileServer(http.Dir("../dist")))
-}
-
 func NewApiMux() *mux.Router {
 	r := mux.NewRouter()
 	r.Use(loggingMiddleware)
@@ -26,6 +22,10 @@ func NewApiMux() *mux.Router {
 	})
 
 	regRouter(r)
+
+	r.PathPrefix("/").
+		Handler(http.StripPrefix("/", http.FileServer(http.Dir("dist"))))
+
 	return r
 }
 

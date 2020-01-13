@@ -89,13 +89,20 @@ func GetUserByJobId(jobId string) *User {
 }
 
 func SaveUser(user *User) error {
-	affected, err := x.Insert(user)
+
+	session := x.NewSession()
+	session.Begin()
+	defer session.Close()
+	defer session.Rollback()
+
+	affected, err := session.Insert(user)
 	if err != nil {
 		return err
 	}
 	if affected == 0 {
 		return errors.New("save user failed")
 	}
+	session.Commit()
 	return nil
 }
 

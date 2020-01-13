@@ -22,8 +22,9 @@ var (
 )
 
 type config struct {
-	TimeTick uint32 `json:"interval"`
-	WorkEnd  struct {
+	TimeTick   uint32 `json:"interval"`
+	Enviroment string `json:"enviroment"`
+	WorkEnd    struct {
 		NotificationTick uint32 `json:"interval"`
 	} `json:"workend"`
 	WorkTime struct {

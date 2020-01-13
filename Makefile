@@ -36,9 +36,9 @@ endif
 
 sqlite:$(SRC)
 	go build -tags sqlite3 -o $(SQLITE-LINUX-AMD64)
-ifneq ("$(UPX)","")
-	$(UPX) -9 $(SQLITE-LINUX-AMD64)
-endif
+#ifneq ("$(UPX)","")
+#	$(UPX) -9 $(SQLITE-LINUX-AMD64)
+#endif
 
 release:all
 	-@./$(PKG) release
@@ -50,6 +50,9 @@ upgrade:
 
 update-version:
 	-@./update_version.sh
+
+generate:
+	go generate
 
 fixme:
 	-@grep -rnw "FIXME" cmd pkg router models

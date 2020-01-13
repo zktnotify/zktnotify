@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+
 	"github.com/zktnotify/zktnotify/cmd"
 	"github.com/zktnotify/zktnotify/pkg/version"
 )
@@ -15,6 +16,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
+
 }
 
 func main() {

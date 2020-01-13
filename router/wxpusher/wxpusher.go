@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/zktnotify/zktnotify/models"
+	"github.com/zktnotify/zktnotify/pkg/resp"
 )
 
 type register struct {
@@ -21,18 +22,18 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.Write([]byte("Error, TODO"))
+		resp.RenderJSON(w, resp.JSONResponse{Status: 500, Message: "服务器端故障"})
 		return
 	}
 
 	if err := json.Unmarshal(data, &reg); err != nil {
-		w.Write([]byte("Error, TODO"))
+		resp.RenderJSON(w, resp.JSONResponse{Status: 300, Message: "请求参数异常"})
 		return
 	}
 
 	user := models.GetUserByJobId(reg.Account)
 	if user != nil {
-		w.Write([]byte("账号注册过了, TODO"))
+		resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "账号注册过了"})
 		return
 	}
 
@@ -45,8 +46,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		NotifyAccount: reg.Mobile,
 	}
 	if err := models.SaveUser(user); err != nil {
-		w.Write([]byte("账号注册失败了, TODO"))
+		resp.RenderJSON(w, resp.JSONResponse{Status: 500, Message: "账号注册失败了:" + err.Error()})
 		return
 	}
-	w.Write([]byte("账号成功了, TODO"))
+	resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "账号成功了"})
 }

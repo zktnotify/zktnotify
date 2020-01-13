@@ -6,8 +6,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"text/template"
 
-	"github.com/alecthomas/template"
 	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 
@@ -20,7 +20,7 @@ const (
 type contentType int
 
 const (
-	ContentText contentType = iota
+	ContentText = iota + 1
 	ContentHtml
 	ContentMarkdown
 )
@@ -93,11 +93,14 @@ func New() typed.Notifier {
 }
 
 func (w *WXPusher) Notify(userToken string, msg string, receiver ...typed.Receiver) error {
+	w.Content = msg
 	w.UIDs = []string{userToken}
-	data, err := json.Marshal(msg)
+
+	data, err := json.Marshal(w)
 	if err != nil {
 		return err
 	}
+
 	resp, err := http.Post(NotifyHook, "application/json", bytes.NewReader(data))
 	if err != nil {
 		return err
@@ -152,6 +155,15 @@ func (w *WXPusher) Template(msg typed.Message) string {
 * 日期：{{.Date}}
 `
 
+	var lateText = `
+# 打卡通知 ({{.CardType}})
+* 状态：{{.Status}}
+* 时间：{{.Time}}
+* 日期：{{.Date}}
+
+![](http://pic.17qq.com/img_biaoqing/20262164.jpeg)
+`
+
 	var delayText = `
 # 打卡通知 ({{.CardType}})
 * 状态：{{.Status}}
@@ -175,6 +187,8 @@ func (w *WXPusher) Template(msg typed.Message) string {
 		text = remindText
 	case typed.DelayWork:
 		text = delayText
+	case typed.Lated:
+		text = lateText
 	default:
 		text = normalText
 	}

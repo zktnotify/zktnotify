@@ -55,19 +55,19 @@ func Login(username string, userID uint64, password string) error {
 		return err
 	}
 
-	if userID != 0 {
-		if cookies := resp.Cookies(); len(cookies) > 0 {
-			ck := http.Cookie{
-				Name:  cookies[0].Name,
-				Path:  cookies[0].Path,
-				Value: cookies[0].Value,
-			}
-			CookieSet(username, userID, ck)
-		}
+	if string(data) != "ok" {
+		return errors.New(string(data))
 	}
-	fmt.Println(cookies, cookies[0].Value, cookies[0].Path, cookies[0].Name)
 
-	return errors.New(string(data))
+	if cookies := resp.Cookies(); len(cookies) > 0 {
+		ck := http.Cookie{
+			Name:  cookies[0].Name,
+			Path:  cookies[0].Path,
+			Value: cookies[0].Value,
+		}
+		CookieSet(username, userID, &ck)
+	}
+	return nil
 }
 
 func GetUserID(username string) (uid uint64, err error) {
@@ -101,16 +101,8 @@ func GetUserID(username string) (uid uint64, err error) {
 		return 0, errors.New("user id not found by url parse")
 	}
 
-	/*
-		if cookies := resp.Cookies(); len(cookies) > 0 {
-			ck := http.Cookie{
-				Name:  cookies[0].Name,
-				Path:  cookies[0].Path,
-				Value: cookies[0].Value,
-			}
-			CookieSet(username, uid, ck)
-		}
-	*/
+	CookieUpdate(username, uid)
+
 	return uid, nil
 }
 

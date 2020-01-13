@@ -118,7 +118,7 @@ func getTodayCardTime(user models.User) (*models.TimeTag, error) {
 
 	if !zkt.HasCookie(user.JobID, user.UserID) {
 		if err = zkt.Login(user.JobID, user.UserID, user.Password); err != nil {
-			return nil, fmt.Errorf("login failed: %w", err)
+			return nil, fmt.Errorf("%s-%d-%v login failed: %w", user.JobID, user.UserID, user.Password, err)
 		}
 
 		if user.UserID == 0 {
@@ -284,6 +284,10 @@ func cardDuration() time.Duration {
 			return max-min < timeRange
 		}
 	)
+
+	if config.Config.Enviroment == "dev" {
+		return defaultTick
+	}
 
 	workTimeEnd, err1 := mktime(config.Config.WorkTime.End)
 	workTimeStart, err2 := mktime(config.Config.WorkTime.Start)
