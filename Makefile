@@ -3,7 +3,7 @@
 
 MAJOR=1
 MINOR=0
-PATCH=5
+PATCH=6
 VER=v$(MAJOR).$(MINOR).$(PATCH)
 
 PKG=zktnotify
