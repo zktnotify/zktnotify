@@ -19,7 +19,7 @@ type User struct {
 	CreateUnix    int64     `xorm:"'create_time'"`
 	UpdateTime    time.Time `xorm:"-"`
 	UpdateUnix    int64     `xorm:"'update_time'"`
-	Status        int       `xorm:"DEFAULT 0 'status'"`
+	Status        int       `xorm:"DEFAULT 0 UNIQUE(UQE_USER) NOT NULL 'status'"`
 }
 
 func (u *User) BeforeInsert() {
@@ -72,7 +72,7 @@ func GetUsers() []*User {
 }
 
 func GetUserByJobId(jobId string) *User {
-	rows, err := x.Rows(User{JobID: jobId, Status: 0})
+	rows, err := x.Where("status=0").Rows(User{JobID: jobId})
 	if err != nil {
 		return nil
 	}
@@ -86,6 +86,14 @@ func GetUserByJobId(jobId string) *User {
 		return &user
 	}
 	return nil
+}
+
+func IsTokenBind(token string) bool {
+	cnt, err := x.Where("notify_url=? AND status = 0", token).Count(&User{})
+	if err != nil {
+		return false
+	}
+	return cnt > 0
 }
 
 func SaveUser(user *User) error {

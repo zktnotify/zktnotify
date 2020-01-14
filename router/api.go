@@ -43,6 +43,7 @@ func regRouter(r *mux.Router) {
 	v1s.HandleFunc("/user/{jobId}", usermng.ChangeUserStatus).Methods("PUT")
 
 	r.HandleFunc("/api/wxpusher/signup", wxpusher.Signup).Methods("POST")
+	r.HandleFunc("/api/wxpusher/follow/callback", wxpusher.Follow).Methods("POST")
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

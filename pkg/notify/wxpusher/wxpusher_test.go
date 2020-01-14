@@ -10,19 +10,32 @@ func TestMain(t *testing.T) {
 	notifier := New()
 	notifier.SetAppToken("AT_4EhDwiLfZfre2eYGWRfiPoeFkNlbciIW")
 
-	msg := typed.Message{
-		Date:   "2020/01/13",
-		Time:   "10:30:00",
-		Type:   typed.Working,
-		Status: typed.ToWork,
-	}
-	t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
+	var msg = typed.Message{}
+
+	/*
+		msg = typed.Message{
+			Date:   "2020/01/13",
+			Time:   "10:30:00",
+			Type:   typed.Working,
+			Status: typed.ToWork,
+		}
+		t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
+
+		msg = typed.Message{
+			Date:   "2020/01/13",
+			Time:   "10:30:00",
+			Type:   typed.Working,
+			Status: typed.Lated,
+		}
+		t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
+	*/
 
 	msg = typed.Message{
-		Date:   "2020/01/13",
-		Time:   "10:30:00",
-		Type:   typed.Working,
-		Status: typed.Lated,
+		Date:      "2020/01/13",
+		Time:      "10:30:00",
+		Type:      typed.Working,
+		Status:    typed.Remind,
+		CancelURL: "http://baidu.com",
 	}
 	t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
 

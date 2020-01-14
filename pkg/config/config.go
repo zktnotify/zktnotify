@@ -54,6 +54,7 @@ type config struct {
 		} `json:"github"`
 	} `json:"xclient"`
 	XServer struct {
+		Host string `json:"host"`
 		Addr string `json:"addr"`
 		Name string `json:"name"`
 		File struct {

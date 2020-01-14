@@ -107,8 +107,6 @@ func WorkingUsers() (users []User, err error) {
 		card_date = ?
 	WHERE
 		u.status = 0
-	AND
-		n.id IS NULL
 	`
 
 	rows, err := x.DB().Query(dbSQL, time.Now().Format("2006-01-02"))

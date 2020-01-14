@@ -11,7 +11,6 @@ import (
 	"github.com/zktnotify/zktnotify/pkg/config"
 	xnotify "github.com/zktnotify/zktnotify/pkg/notify"
 	"github.com/zktnotify/zktnotify/pkg/notify/typed"
-	"github.com/zktnotify/zktnotify/pkg/shorturl"
 )
 
 type CardStatus = typed.TemplateID
@@ -39,8 +38,12 @@ func (dtn *Notification) Notify() error {
 		return fmt.Errorf("user(%d) not found", dtn.UserID)
 	}
 
-	if err := models.Notified(dtn.UserID, uint64(dtn.Status), dtn.Date, dtn.Time); err != nil {
-		return err
+	if dtn.Status == typed.Remind {
+		models.UpdateNotice(user.UserID, uint64(dtn.Status), dtn.Date, dtn.Time)
+	} else {
+		if err := models.Notified(dtn.UserID, uint64(dtn.Status), dtn.Date, dtn.Time); err != nil {
+			return err
+		}
 	}
 
 	if !typed.Valid(dtn.NotifyType) {
@@ -81,27 +84,6 @@ func (dtn *Notification) CanNotify() bool {
 		return false
 	}
 	return true
-}
-
-func (dtn *Notification) send() error {
-	/*
-		sender := xnotify.New(dtn.NotifyType)
-		sender.SetAppToken(config.Config.XServer.NotificationServer.AppToken)
-
-		if dtn.Status == typed.Remind {
-			sender.SetCancelURL(dtn.shortURL())
-		}
-
-		return sender.Notify(
-			dtn.Token,
-			xnotify.Template(sender),
-			typed.Receiver{
-				All: false,
-				ID:  []string{dtn.Account},
-			},
-		)
-	*/
-	return nil
 }
 
 func NewNotifier() chan<- Notification {
@@ -206,8 +188,15 @@ func (dtn *Notification) shortURL() string {
 	if dtn.Status != typed.Remind {
 		return ""
 	}
+
+	/* service stoped, use origin
+
 	return shorturl.ShortURL("/counternotice", map[string]interface{}{
 		"userid":    dtn.UserID,
 		"card_date": dtn.Date,
 	})
+	*/
+
+	url := config.Config.XServer.ShortURL.PrefixURL + "/counternotice?userid=" + fmt.Sprint(dtn.UserID) + "&card_date=" + dtn.Date
+	return url
 }

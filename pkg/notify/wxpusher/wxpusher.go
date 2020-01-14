@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"text/template"
+	"time"
 
+	"github.com/zktnotify/zktnotify/pkg/config"
 	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 )
 
@@ -80,6 +82,7 @@ type WXPusher struct {
 	TopicIDs    []int       `json:"topicIds"`
 	UIDs        []string    `json:"uids"`
 	URL         string      `json:"url"`
+	CancelURL   string      `json:"-"`
 }
 
 var _ typed.Notifier = (*WXPusher)(nil)
@@ -124,7 +127,7 @@ func (w *WXPusher) Notify(userToken string, msg string, receiver ...typed.Receiv
 }
 
 func (w *WXPusher) SetCancelURL(url string) {
-	w.URL = url
+	w.CancelURL = url
 }
 
 func (w *WXPusher) SetAppToken(token string) {
@@ -138,12 +141,13 @@ func (w *WXPusher) Template(msg typed.Message) string {
 		Date      string
 		Time      string
 		CancelURL string
+		IconURL   string
 	}{
 		CardType:  msg.Type.String(),
 		Status:    msg.Status.String(),
-		Date:      msg.Date,
+		Date:      convertDate(msg.Date),
 		Time:      msg.Time,
-		CancelURL: msg.CancelURL,
+		CancelURL: w.CancelURL,
 	}
 
 	var defaultText = "oops ...."
@@ -161,7 +165,7 @@ func (w *WXPusher) Template(msg typed.Message) string {
 * 时间：{{.Time}}
 * 日期：{{.Date}}
 
-![](http://pic.17qq.com/img_biaoqing/20262164.jpeg)
+![]({{.IconURL}})
 `
 
 	var delayText = `
@@ -171,6 +175,8 @@ func (w *WXPusher) Template(msg typed.Message) string {
 * 日期：{{.Date}}
 
 【温馨提示】：昨晚辛苦了，今天没有迟到
+
+![]({{.IconURL}})
 `
 
 	var remindText = `
@@ -178,17 +184,21 @@ func (w *WXPusher) Template(msg typed.Message) string {
 * 时间：{{.Time}}
 * 日期：{{.Date}}
 
-![](http://pic.17qq.com/img_biaoqing/20262164.jpeg)[点我取消]({{.CancelURL}})
+![]({{.IconURL}})[点我取消]({{.CancelURL}})
 `
 
 	var text string
+	var root = config.Config.XServer.Host + "/icons/"
 	switch msg.Status {
 	case typed.Remind:
 		text = remindText
+		tpl.IconURL = root + "happy.gif"
 	case typed.DelayWork:
 		text = delayText
+		tpl.IconURL = root + "rampant.gif"
 	case typed.Lated:
 		text = lateText
+		tpl.IconURL = root + "sullen.gif"
 	default:
 		text = normalText
 	}
@@ -204,4 +214,19 @@ func (w *WXPusher) Template(msg typed.Message) string {
 	}
 
 	return buf.String()
+}
+
+func convertDate(date string) string {
+	cdText := map[time.Weekday]string{
+		time.Sunday:    "星期日",
+		time.Monday:    "星期一",
+		time.Tuesday:   "星期二",
+		time.Wednesday: "星期三",
+		time.Thursday:  "星期四",
+		time.Friday:    "星期五",
+		time.Saturday:  "星期六",
+	}
+
+	t, _ := time.Parse("2006-01-02", date)
+	return t.Format("2006年01月02日 ") + cdText[t.Weekday()]
 }

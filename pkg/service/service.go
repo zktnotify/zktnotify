@@ -118,7 +118,7 @@ func getTodayCardTime(user models.User) (*models.TimeTag, error) {
 
 	if !zkt.HasCookie(user.JobID, user.UserID) {
 		if err = zkt.Login(user.JobID, user.UserID, user.Password); err != nil {
-			return nil, fmt.Errorf("%s-%d-%v login failed: %w", user.JobID, user.UserID, user.Password, err)
+			return nil, fmt.Errorf("%s login failed: %v", user.JobID, err)
 		}
 
 		if user.UserID == 0 {
@@ -161,7 +161,8 @@ func cardTimeMatched(pattern []models.CardTime, match models.CardTime) bool {
 var lastNotifiedTime int64
 
 func CardTimeNotification(users []models.User) error {
-	ctype := typed.Remind
+	wtype := typed.OffWork
+	status := typed.Remind
 	cdate := time.Now().Format("2006-01-02")
 	ctime := func() string { return time.Now().Format("15:04:05") }
 
@@ -190,13 +191,13 @@ func CardTimeNotification(users []models.User) error {
 			Name:       user.Name,
 			Date:       cdate,
 			Time:       ctime(),
-			Type:       typed.OffWork,
-			Status:     ctype,
+			Type:       wtype,
+			Status:     status,
 			NotifyType: typed.NotifierType(user.NotifyType),
 			Token:      user.NotifyToken,
 		}
-		nc.send()
-		models.UpdateNotice(user.UserID, uint64(ctype), cdate, ctime())
+		nc.Notify()
+		models.UpdateNotice(user.UserID, uint64(status), cdate, ctime())
 	}
 	lastNotifiedTime = time.Now().Unix()
 	return nil
