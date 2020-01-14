@@ -59,6 +59,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	wxpTokenCache.Lock()
 	if _, ok := wxpTokenCache.token[reg.Token]; !ok {
 		resp.RenderJSON(w, resp.JSONResponse{Status: 300, Message: "请先关注WXPusher公众号"})
+		wxpTokenCache.Unlock()
 		return
 	}
 	wxpTokenCache.Unlock()
@@ -75,7 +76,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		resp.RenderJSON(w, resp.JSONResponse{Status: 500, Message: "账号注册失败了:" + err.Error()})
 		return
 	}
-	resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "账号成功了"})
+	resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "账号注册成功了"})
 }
 
 type Follower struct {

@@ -44,6 +44,7 @@ fi
 
 function list_version_tag() {
 	if [ "$(command -v git)" != "" ]; then
+		git pull
 		git tag
 	fi
 }

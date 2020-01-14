@@ -101,12 +101,12 @@ func WorkingUsers() (users []User, err error) {
 		notify n
 	ON
 		u.user_id = n.user_id
-	AND
-		n.card_type IN(1,3,4,5,6)
-	AND
-		card_date = ?
 	WHERE
 		u.status = 0
+	AND
+		n.card_type IN(1,3,4,6)
+	AND
+		card_date = ?
 	`
 
 	rows, err := x.DB().Query(dbSQL, time.Now().Format("2006-01-02"))

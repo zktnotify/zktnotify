@@ -37,7 +37,7 @@ func (u *User) BeforeUpdate() {
 }
 
 func GetUser(uid uint64) *User {
-	rows, err := x.Rows(User{UserID: uid, Status: 0})
+	rows, err := x.Where("status=0").Rows(User{UserID: uid})
 	if err != nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ func GetUser(uid uint64) *User {
 }
 
 func GetUsers() []*User {
-	rows, err := x.Rows(User{Status: 0})
+	rows, err := x.Where("status=0").Rows(&User{})
 	if err != nil {
 		return nil
 	}
@@ -159,9 +159,8 @@ func AllUsers() (users []User, err error) {
 func (u *User) UpdateUserID() error {
 	user := User{
 		UserID: u.UserID,
-		Status: 0,
 	}
-	affected, err := x.Cols("user_id").Where("job_id=?", u.JobID).Update(&user)
+	affected, err := x.Cols("user_id").Where("job_id=? AND status=0", u.JobID).Update(&user)
 	if err != nil {
 		return err
 	}
