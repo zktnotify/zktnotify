@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	users    = map[uint64]string{}
 	ncookies = map[string]*http.Cookie{}
 	ucookies = map[uint64]*http.Cookie{}
 	mux      = sync.Mutex{}
@@ -20,6 +21,9 @@ func CookieSet(jid string, uid uint64, ck *http.Cookie) {
 	}
 	if uid != 0 {
 		ucookies[uid] = ck
+	}
+	if uid != 0 && jid != "" {
+		users[uid] = jid
 	}
 }
 
@@ -44,6 +48,18 @@ func CookieUpdate(name string, id uint64) {
 
 	if ck, ok := ncookies[name]; id != 0 && ok {
 		ucookies[id] = ck
+		users[id] = name
+	}
+}
+
+func CookieRemove(id uint64) {
+	mux.Lock()
+	defer mux.Unlock()
+
+	if name, ok := users[id]; ok {
+		delete(users, id)
+		delete(ucookies, id)
+		delete(ncookies, name)
 	}
 }
 

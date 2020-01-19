@@ -16,6 +16,8 @@ import (
 type CardStatus = typed.TemplateID
 type CardType = typed.WorkType
 
+type HookFunc func()
+
 type Notification struct {
 	UserID     uint64
 	Name       string
@@ -26,6 +28,8 @@ type Notification struct {
 	Type       CardType
 	Status     CardStatus
 	NotifyType typed.NotifierType
+
+	AfterHooks []HookFunc
 }
 
 func (dtn *Notification) Notify() error {
@@ -110,6 +114,9 @@ func NewNotifier() chan<- Notification {
 
 		if err := handler.Notify(); err != nil {
 			log.Println(err)
+		}
+		for _, h := range msg.AfterHooks {
+			h()
 		}
 	}()
 	return ch

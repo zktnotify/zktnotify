@@ -106,13 +106,19 @@ func GetUserID(username string) (uid uint64, err error) {
 	return uid, nil
 }
 
-func GetTimeTag(uid uint64, start, end time.Time) (_ *models.TimeTagInfos, _ error) {
+func GetTimeTag(uid uint64, start, end time.Time) (_ *models.TimeTagInfos, err error) {
 	var (
 		infos     = models.TimeTagInfos{}
 		uparam    = gourl.Values{}
 		client    = http.Client{}
 		cookie, _ = CookieGet("", uid)
 	)
+
+	defer func() {
+		if err != nil {
+			CookieRemove(uid)
+		}
+	}()
 
 	uparam.Add("page", "1")
 	uparam.Add("rp", "20")
@@ -136,7 +142,7 @@ func GetTimeTag(uid uint64, start, end time.Time) (_ *models.TimeTagInfos, _ err
 		return nil, err
 	}
 
-	if err := json.Unmarshal(data, &infos); err != nil {
+	if err = json.Unmarshal(data, &infos); err != nil {
 		if strings.Contains(string(data), "!DOCTYPE HTML") {
 			err = nil
 		}

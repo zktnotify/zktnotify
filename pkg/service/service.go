@@ -64,8 +64,8 @@ func RetrieveWorkingUsers() []models.User {
 }
 
 func RetrieveCardTime(users []models.User) error {
-	for _, user := range users {
 
+	for _, user := range users {
 		tag, err := getTodayCardTime(user)
 		if err != nil {
 			log.Println(err)
@@ -93,19 +93,19 @@ func RetrieveCardTime(users []models.User) error {
 				BadgeNumber: tag.BadgeNumber,
 			}
 
-			if !cardTimeMatched(cardTimes, cardTime) {
-
-				NewNotifier() <- Notification{
-					UserID: tag.UserID,
-					Name:   tag.Name,
-					Date:   tag.CardDate,
-					Time:   timeVal,
-				}
-				// FIXME: 发送报告是由协程去实现，如果执行过快，会导致发送多条
-				time.Sleep(time.Millisecond * 300)
-
+			punched := func() {
 				if err := cardTime.Punched(); err != nil {
 					log.Println(err)
+				}
+			}
+
+			if !cardTimeMatched(cardTimes, cardTime) {
+				NewNotifier() <- Notification{
+					UserID:     tag.UserID,
+					Name:       tag.Name,
+					Date:       tag.CardDate,
+					Time:       timeVal,
+					AfterHooks: []HookFunc{punched},
 				}
 			}
 		}
