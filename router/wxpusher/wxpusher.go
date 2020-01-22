@@ -2,16 +2,23 @@ package wxpusher
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/zktnotify/zktnotify/models"
 	"github.com/zktnotify/zktnotify/pkg/config"
+	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 	"github.com/zktnotify/zktnotify/pkg/notify/wxpusher"
 	"github.com/zktnotify/zktnotify/pkg/resp"
+)
+
+const (
+	notifyType = uint32(typed.WXPUSHER)
 )
 
 type WXPusherTokenCache struct {
@@ -31,6 +38,36 @@ type register struct {
 	Account  string `json:"account"`
 }
 
+func (reg *register) validCheck() error {
+	if _, err := strconv.ParseUint(reg.Account); err != nil {
+		return errors.New("account is requried and it must be nuberic")
+	}
+	if reg.Password == "" {
+		return errors.New("password is requried")
+	}
+	if reg.Token == "" {
+		return errors.New("token is requried")
+	}
+	return nil
+}
+
+func (reg *register) isAccountBind() bool {
+	user := models.GetUserByJobId(reg.Account)
+	return user != nil
+}
+
+func (reg *register) isTokenBind() bool {
+	return models.IsTokenBind(reg.Token)
+}
+
+func (reg *register) isFollowed() bool {
+	wxpTokenCache.Lock()
+	defer wxpTokenCache.Unlock()
+
+	_, ok := wxpTokenCache.token[reg.Token]
+	return ok
+}
+
 func Signup(w http.ResponseWriter, r *http.Request) {
 	reg := register{}
 
@@ -45,31 +82,32 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.GetUserByJobId(reg.Account)
-	if user != nil {
+	if err := reg.validCheck(); err != nil {
+		resp.RenderJSON(w, resp.JSONResponse{Status: 300, Message: err.Error()})
+		return
+	}
+
+	if reg.isAccountBind() {
 		resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "账号注册过了"})
 		return
 	}
 
-	if models.IsTokenBind(reg.Token) {
+	if reg.isTokenBind() {
 		resp.RenderJSON(w, resp.JSONResponse{Status: 200, Message: "Token已经绑定过了"})
 		return
 	}
 
-	wxpTokenCache.Lock()
-	if _, ok := wxpTokenCache.token[reg.Token]; !ok {
+	if !reg.isFollowed() {
 		resp.RenderJSON(w, resp.JSONResponse{Status: 300, Message: "请先关注WXPusher公众号"})
-		wxpTokenCache.Unlock()
 		return
 	}
-	wxpTokenCache.Unlock()
 
 	user = &models.User{
 		Name:          reg.Name,
 		JobID:         reg.Account,
 		Password:      reg.Password,
 		NotifyToken:   reg.Token,
-		NotifyType:    2,
+		NotifyType:    notifyType,
 		NotifyAccount: reg.Mobile,
 	}
 	if err := models.SaveUser(user); err != nil {
