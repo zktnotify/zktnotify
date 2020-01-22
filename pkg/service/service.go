@@ -166,10 +166,6 @@ func CardTimeNotification(users []models.User) error {
 	cdate := time.Now().Format("2006-01-02")
 	ctime := func() string { return time.Now().Format("15:04:05") }
 
-	defer func() {
-		lastNotifiedTime = time.Now().Unix()
-	}()
-
 	if !isWorkDate(cdate) {
 		return nil
 	}
@@ -203,6 +199,7 @@ func CardTimeNotification(users []models.User) error {
 		nc.Notify()
 		models.UpdateNotice(user.UserID, uint64(status), cdate, ctime())
 	}
+	lastNotifiedTime = time.Now().Unix()
 	return nil
 }
 
