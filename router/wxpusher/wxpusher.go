@@ -39,7 +39,7 @@ type register struct {
 }
 
 func (reg *register) validCheck() error {
-	if _, err := strconv.ParseUint(reg.Account); err != nil {
+	if _, err := strconv.ParseUint(reg.Account, 10, 32); err != nil {
 		return errors.New("account is requried and it must be nuberic")
 	}
 	if reg.Password == "" {
@@ -102,7 +102,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user = &models.User{
+	user := &models.User{
 		Name:          reg.Name,
 		JobID:         reg.Account,
 		Password:      reg.Password,

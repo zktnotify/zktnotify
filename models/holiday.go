@@ -10,7 +10,7 @@ type Holiday struct {
 	Year       uint16    `xorm:"UNIQUE(UQE_HOLIDAY) NOT NULL 'year'"`
 	Month      uint8     `xorm:"UNIQUE(UQE_HOLIDAY) NOT NULL 'month'"`
 	Day        uint8     `xorm:"UNIQUE(UQE_HOLIDAY) NOT NULL 'day'"`
-	WorkDay    bool      `xorm:"work_day"`
+	WorkDay    int       `xorm:"work_day"`
 	CreateTime time.Time `xorm:"-"`
 	CreateUnix int64     `xorm:"'create_time'"`
 	UpdateTime time.Time `xorm:"-"`

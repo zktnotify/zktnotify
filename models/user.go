@@ -7,19 +7,20 @@ import (
 )
 
 type User struct {
-	Id            int64
-	Name          string    `xorm:"name"`
-	JobID         string    `xorm:"UNIQUE(UQE_USER) NOT NULL 'job_id'"`
-	UserID        uint64    `xorm:"user_id"`
-	Password      string    `xorm:"password"`
-	NotifyToken   string    `xorm:"notify_url"`
-	NotifyType    uint32    `xorm:"DEFAULT 0 'notify_type'"` // 0 dingding, 1 serverChan, 2 wxpusher
-	NotifyAccount string    `xorm:"notify_account"`
-	CreateTime    time.Time `xorm:"-"`
-	CreateUnix    int64     `xorm:"'create_time'"`
-	UpdateTime    time.Time `xorm:"-"`
-	UpdateUnix    int64     `xorm:"'update_time'"`
-	Status        int       `xorm:"DEFAULT 0 UNIQUE(UQE_USER) NOT NULL 'status'"`
+	Id                  int64
+	Name                string    `xorm:"name"`
+	JobID               string    `xorm:"UNIQUE(UQE_USER) NOT NULL 'job_id'"`
+	UserID              uint64    `xorm:"user_id"`
+	Password            string    `xorm:"password"`
+	NotifyToken         string    `xorm:"notify_url"`
+	NotifyType          uint32    `xorm:"DEFAULT 0 'notify_type'"` // 0 dingding, 1 serverChan, 2 wxpusher
+	NotifyAccount       string    `xorm:"notify_account"`
+	SpecialPeriodNotify bool      `xorm:"special_period_notify"` // 0 Not, 1 Yes
+	CreateTime          time.Time `xorm:"-"`
+	CreateUnix          int64     `xorm:"'create_time'"`
+	UpdateTime          time.Time `xorm:"-"`
+	UpdateUnix          int64     `xorm:"'update_time'"`
+	Status              int       `xorm:"DEFAULT 0 UNIQUE(UQE_USER) NOT NULL 'status'"`
 }
 
 func (u *User) BeforeInsert() {

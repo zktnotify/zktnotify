@@ -10,6 +10,7 @@ import (
 
 	"github.com/zktnotify/zktnotify/models"
 	"github.com/zktnotify/zktnotify/pkg/config"
+	xnotify "github.com/zktnotify/zktnotify/pkg/notify"
 	"github.com/zktnotify/zktnotify/pkg/notify/typed"
 	"github.com/zktnotify/zktnotify/pkg/zkt"
 )
@@ -179,28 +180,51 @@ func CardTimeNotification(users []models.User) error {
 	}
 
 	for _, user := range users {
-		if models.IsNotified(user.UserID, cdate, uint64(typed.Worked)) {
+		// 特殊时期上班(2019-2020新冠)并且用户愿意接收下班打卡提醒
+		if config.Config.IsSpecialPeriod && !user.SpecialPeriodNotify {
 			continue
 		}
 		if !models.CanNotify(user.UserID, cdate) {
 			continue
 		}
 
-		nc := Notification{
-			UserID:     user.UserID,
+		msg := typed.Message{
+			UID:        user.UserID,
 			Name:       user.Name,
 			Date:       cdate,
 			Time:       ctime(),
 			Type:       wtype,
 			Status:     status,
-			NotifyType: typed.NotifierType(user.NotifyType),
 			Token:      user.NotifyToken,
+			Account:    user.NotifyAccount,
+			NotifyType: typed.NotifierType(user.NotifyType),
 		}
-		nc.Notify()
+		if err := sendNotice(msg); err != nil {
+			log.Printf("send take card notify for user(%d) failed:%v", user.UserID, err)
+			continue
+		}
 		models.UpdateNotice(user.UserID, uint64(status), cdate, ctime())
 	}
 	lastNotifiedTime = time.Now().Unix()
 	return nil
+}
+
+func sendNotice(msg typed.Message) error {
+	dtn := &Notification{
+		UserID: msg.UID,
+		Date:   msg.Date,
+		Status: msg.Status,
+	}
+
+	sender := xnotify.New(msg)
+	sender.SetCancelURL(dtn.shortURL())
+	sender.SetAppToken(config.Config.XServer.NotificationServer.AppToken)
+
+	receiver := typed.Receiver{
+		All: false,
+		ID:  []string{msg.Account},
+	}
+	return sender.Notify(msg.Token, sender.Template(msg), receiver)
 }
 
 func atou8(s string) uint8 {
@@ -225,10 +249,7 @@ func isWorkDate(cdate string) bool {
 		return true
 	}
 
-	if !h.WorkDay {
-		return false
-	}
-	return true
+	return h.WorkDay == 1
 }
 
 var firstNotified = true

@@ -87,26 +87,31 @@ func (tag *TimeTagInfos) Today() *TimeTag {
 
 func WorkingUsers() (users []User, err error) {
 	dbSQL := `
-	SELECT
-		u.id,
-		u.name,
-		u.job_id,
-		u.user_id,
-		u.password,
-		u.notify_url,
-		u.notify_account
-	FROM
-		user u
-	LEFT JOIN
-		notify n
-	ON
-		u.user_id = n.user_id
-	WHERE
-		u.status = 0
-	AND
-		n.card_type IN(1,3,4,6)
-	AND
-		card_date = ?
+		SELECT
+			id,
+			name,
+			job_id,
+			user_id,
+			PASSWORD,
+			notify_url,
+			notify_type,
+			notify_account,
+			special_period_notify
+		FROM
+			user
+		WHERE
+			user_id NOT IN (
+			SELECT
+				user_id
+			FROM
+				notify
+			WHERE
+				card_date = ?
+				AND status = 0
+				AND (card_type = 2
+				OR (card_type = 5 AND notified_status = 2))
+			)
+			AND status = 0
 	`
 
 	rows, err := x.DB().Query(dbSQL, time.Now().Format("2006-01-02"))
@@ -117,7 +122,7 @@ func WorkingUsers() (users []User, err error) {
 
 	for rows.Next() {
 		u := User{}
-		if err = rows.Scan(&u.Id, &u.Name, &u.JobID, &u.UserID, &u.Password, &u.NotifyToken, &u.NotifyAccount); err != nil {
+		if err = rows.Scan(&u.Id, &u.Name, &u.JobID, &u.UserID, &u.Password, &u.NotifyToken, &u.NotifyType, &u.NotifyAccount, &u.SpecialPeriodNotify); err != nil {
 			return nil, err
 		}
 		users = append(users, u)

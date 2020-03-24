@@ -161,6 +161,9 @@ func delayInWork(uid uint64, cdate, ctime string) bool {
 
 func workType(early, last *models.CardTime) CardType {
 	if early == nil {
+		if time.Now().Format("15:04:05") >= config.Config.WorkTime.End {
+			return typed.OffWork
+		}
 		return typed.Working
 	}
 	return typed.OffWork
