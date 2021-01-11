@@ -13,7 +13,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/opesun/goquery v0.0.0-20160908163916-0d77e43213cd
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/urfave/cli v1.22.2
@@ -21,4 +21,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.30.2
+	gorm.io/driver/sqlite v1.1.4 // indirect
+	gorm.io/gorm v1.20.11 // indirect
 )

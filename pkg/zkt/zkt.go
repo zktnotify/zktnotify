@@ -143,7 +143,7 @@ func GetTimeTag(uid uint64, start, end time.Time) (_ *models.TimeTagInfos, err e
 	}
 
 	if err = json.Unmarshal(data, &infos); err != nil {
-		if strings.Contains(string(data), "!DOCTYPE HTML") {
+		if strings.Contains(strings.ToUpper(string(data)), "!DOCTYPE HTML") {
 			err = nil
 		}
 		return nil, err

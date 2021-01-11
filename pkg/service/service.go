@@ -65,7 +65,6 @@ func RetrieveWorkingUsers() []models.User {
 }
 
 func RetrieveCardTime(users []models.User) error {
-
 	for _, user := range users {
 		tag, err := getTodayCardTime(user)
 		if err != nil {
@@ -289,41 +288,22 @@ func sleepDuration() int {
 // otherwise, access once in 10 minutes
 func cardDuration() time.Duration {
 	var (
-		timeRange    = int64(30 * 60)
-		defaultTick  = time.Duration(config.Config.TimeTick) * time.Second
-		outRangeTick = 10 * time.Minute
-
-		mktime = func(suffix string) (time.Time, error) {
-			return time.ParseInLocation("2006/01/02 15:04:05",
-				fmt.Sprintf("%s %s", time.Now().Format("2006/01/02"), suffix),
-				time.Local)
-		}
-		inscope = func(wtime int64) bool {
-			max, min := wtime, time.Now().Local().Unix()
-			if max < min {
-				max, min = min, max
-			}
-			return max-min < timeRange
-		}
+		tick      = time.Duration(config.Config.TimeTick) * time.Second
+		longtick  = 10 * time.Minute
+		threetick = 3 * tick
+		now       = time.Now().Local().Format("15:04:05")
 	)
 
 	if config.Config.Enviroment == "dev" {
-		return defaultTick
+		return tick
 	}
 
-	workTimeEnd, err1 := mktime(config.Config.WorkTime.End)
-	workTimeStart, err2 := mktime(config.Config.WorkTime.Start)
-	if err1 != nil || err2 != nil {
-		err := err1
-		if err == nil {
-			err = err2
-		}
-		log.Println("mktime failed:", err)
-		return defaultTick
+	if (now > "08:45:00" && now <= "09:30:00") || (now > "17:45:00" && now <= "18:30:00") {
+		return tick
+	}
+	if (now > "09:30:00" && now <= "10:30:00") || (now > "18:30:00" && now <= "21:30:00") {
+		return threetick
 	}
 
-	if inscope(workTimeStart.Unix()) || inscope(workTimeEnd.Unix()) {
-		return defaultTick
-	}
-	return outRangeTick
+	return longtick
 }

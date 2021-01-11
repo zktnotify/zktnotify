@@ -21,6 +21,7 @@ type User struct {
 	UpdateTime          time.Time `xorm:"-"`
 	UpdateUnix          int64     `xorm:"'update_time'"`
 	Status              int       `xorm:"DEFAULT 0 UNIQUE(UQE_USER) NOT NULL 'status'"`
+	NotifyCount         int       `xorm:"-"`
 }
 
 func (u *User) BeforeInsert() {
@@ -166,7 +167,7 @@ func (u *User) UpdateUserID() error {
 		return err
 	}
 	if affected == 0 {
-		return fmt.Errorf("not found job_id(%d) ", u.JobID)
+		return fmt.Errorf("not found job_id(%s) ", u.JobID)
 	}
 	return nil
 }

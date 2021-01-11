@@ -81,6 +81,7 @@ type config struct {
 		NotificationServer struct {
 			AppToken string `json:"app_token"`
 		} `json:"notification_server"`
+		MaxNotifications int `json:"max_notifications"`
 	} `json:"xserver"`
 }
 
@@ -124,6 +125,7 @@ func load(filename string) (*config, error) {
 	cfg.XServer.ShortURL.Server.AppKey = ""
 	cfg.XServer.ShortURL.Server.ApiAddr = "http://api.suolink.cn/api.php"
 	cfg.XServer.ShortURL.PrefixURL = "http://fylos.cn:4567/api/v1"
+	cfg.XServer.MaxNotifications = 10
 	cfg.XClient.Server.Addr = "http://127.0.0.1:4567"
 	cfg.DelayWorkTime.Item = []struct {
 		Time  string `json:"time"`
@@ -180,6 +182,10 @@ func (cfg config) Validator() error {
 		if cfg.XServer.ShortURL.Server.AppKey == "" {
 			return errors.New("short server app key is required")
 		}
+	}
+
+	if cfg.XServer.MaxNotifications == 0 {
+		return errors.New("max notification number must larger than zero")
 	}
 
 	return nil
