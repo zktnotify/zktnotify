@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -64,23 +65,43 @@ func RetrieveWorkingUsers() []models.User {
 	return users
 }
 
-func RetrieveCardTime(users []models.User) error {
-	for _, user := range users {
-		tag, err := getTodayCardTime(user)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		if tag == nil {
-			continue
-		}
+var readCarderCount int
 
+func RetrieveCardTime(users []models.User) error {
+	var (
+		factor     = 5
+		workend    = "17:50:00"
+		workstart  = "08:50:00"
+		delaystart = "18:36:00"
+		delayend   = "19:56:00"
+		curtime    = time.Now().Format("15:04:05")
+	)
+	readCarderCount++
+
+	for _, user := range users {
 		cardTimes, err := models.CardTimes(models.CardTime{
 			UserID:   user.UserID,
 			CardDate: time.Now().Format("2006-01-02"),
 		})
 		if err != nil {
 			log.Println(err)
+			continue
+		}
+		sort.Slice(cardTimes, func(i, j int) bool { return cardTimes[i].CardTime < cardTimes[j].CardTime })
+
+		if len(cardTimes) > 0 && readCarderCount%factor > 0 &&
+			((workstart < curtime && curtime < workend) ||
+				(delaystart < curtime && curtime < delayend &&
+					cardTimes[len(cardTimes)-1].CardTime >= config.Config.WorkTime.End)) {
+			continue
+		}
+
+		tag, err := getTodayCardTime(user)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if tag == nil {
 			continue
 		}
 
