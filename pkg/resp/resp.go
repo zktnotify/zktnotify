@@ -12,6 +12,11 @@ type JSONResponse struct {
 	Data    interface{} `json:"data"`
 }
 
+var (
+	ServiceError   = JSONResponse{Status: 500, Message: "service internal error"}
+	InvalidRequest = JSONResponse{Status: 400, Message: "invalid request"}
+)
+
 func RenderJSON(w http.ResponseWriter, data JSONResponse) {
 	w.Header().Set("Content-Type", "application/json")
 	bytes, _ := json.Marshal(data)
@@ -34,7 +39,7 @@ func Respond(w http.ResponseWriter, code int, data interface{}, msg ...interface
 	rep := JSONResponse{
 		Status:  code,
 		Data:    data,
-		Message: fmt.Sprint(msg),
+		Message: fmt.Sprint(msg...),
 	}
 	if rep.Message == "" {
 		rep.Message = "success"

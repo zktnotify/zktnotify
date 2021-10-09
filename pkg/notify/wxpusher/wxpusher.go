@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"text/template"
@@ -187,6 +188,14 @@ func (w *WXPusher) Template(msg typed.Message) string {
 ![]({{.IconURL}})[点我取消]({{.CancelURL}})
 `
 
+	var monthDailyText = fmt.Sprintf(`
+# %d月考勤报表
+* 时间：{{.Time}}
+* 日期：{{.Date}}
+
+![]({{.IconURL}})[点我查看]({{.CancelURL}})
+`, time.Now().Month())
+
 	var text string
 	var root = config.Config.XServer.Host + "/icons/"
 	switch msg.Status {
@@ -199,6 +208,9 @@ func (w *WXPusher) Template(msg typed.Message) string {
 	case typed.Lated:
 		text = lateText
 		tpl.IconURL = root + "sullen.gif"
+	case typed.MonthDaily:
+		text = monthDailyText
+		tpl.IconURL = root + "happy.gif"
 	default:
 		text = normalText
 	}

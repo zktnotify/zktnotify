@@ -38,9 +38,10 @@ func regRouter(r *mux.Router) {
 	v1s.HandleFunc("/counternotice", notify.CounterNotice).Methods("GET")
 	v1s.HandleFunc("/user", usermng.AddUser).Methods("POST")
 	v1s.HandleFunc("/user", usermng.GetUsers).Methods("GET")
-	v1s.HandleFunc("/user/{jobId}", usermng.GetUser).Methods("GET")
-	v1s.HandleFunc("/user/{jobId}", usermng.DeleteUser).Methods("DELETE")
-	v1s.HandleFunc("/user/{jobId}", usermng.ChangeUserStatus).Methods("PUT")
+	//v1s.HandleFunc("/user/{jobId}", usermng.GetUser).Methods("GET")
+	//v1s.HandleFunc("/user/{jobId}", usermng.DeleteUser).Methods("DELETE")
+	//v1s.HandleFunc("/user/{jobId}", usermng.ChangeUserStatus).Methods("PUT")
+	v1s.HandleFunc("/user/monthdaily", usermng.GetMonthDaily).Methods("GET")
 
 	r.HandleFunc("/api/wxpusher/signup", wxpusher.Signup).Methods("POST")
 	r.HandleFunc("/api/wxpusher/follow/callback", wxpusher.Follow).Methods("POST")

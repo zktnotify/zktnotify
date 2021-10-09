@@ -30,12 +30,23 @@ func TestMain(t *testing.T) {
 		t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
 	*/
 
+	/*
+		msg = typed.Message{
+			Date:      "2020/01/13",
+			Time:      "10:30:00",
+			Type:      typed.Working,
+			Status:    typed.Remind,
+			CancelURL: "http://baidu.com",
+		}
+		t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
+	*/
+
 	msg = typed.Message{
 		Date:      "2020/01/13",
 		Time:      "10:30:00",
 		Type:      typed.Working,
-		Status:    typed.Remind,
-		CancelURL: "http://baidu.com",
+		Status:    typed.MonthDaily,
+		CancelURL: "http://zkt.fylos.cn:4567/api/v1/user/monthdaily?userid=3494&month=10",
 	}
 	t.Log(notifier.Notify("UID_XK7Qp5fAPTxNgszplAEAqgnOTebX", notifier.Template(msg)))
 

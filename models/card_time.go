@@ -74,3 +74,10 @@ func EarliestAndLatestCardTime(uid uint64, cdate string) (*CardTime, *CardTime) 
 
 	return &times[0], &times[len(times)-1]
 }
+
+func GetUserCardDateRecords(uid uint64, from, to string) ([]CardTime, error) {
+	var times []CardTime
+
+	err := x.Where("user_id=? AND card_date BETWEEN ? AND ? AND status=0", uid, from, to).Asc("card_time").Find(&times)
+	return times, err
+}

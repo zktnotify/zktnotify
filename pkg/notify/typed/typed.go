@@ -19,6 +19,7 @@ const (
 	Lated
 	Remind    // notify to take a card
 	DelayWork // delay in work
+	MonthDaily
 )
 
 type WorkType uint64
@@ -52,6 +53,8 @@ func (s TemplateID) String() string {
 		status = "提醒"
 	case DelayWork:
 		status = "正常"
+	case MonthDaily:
+		status = "提醒"
 	}
 	return status
 }

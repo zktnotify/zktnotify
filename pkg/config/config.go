@@ -83,6 +83,10 @@ type config struct {
 		} `json:"notification_server"`
 		MaxNotifications int `json:"max_notifications"`
 	} `json:"xserver"`
+	MonthDaily struct {
+		Cron  string `json:"cron"`
+		Users []int  `json:"users"`
+	} `json:"month_daily"`
 }
 
 // NewConfig create a new config object
@@ -136,6 +140,8 @@ func load(filename string) (*config, error) {
 		{Time: "22:00:00", Delay: 105},
 		{Time: "23:00:00", Delay: 200},
 	}
+	cfg.MonthDaily.Cron = "0 0 22-23 20 * ?"
+	cfg.MonthDaily.Users = []int{3494}
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {

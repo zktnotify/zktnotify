@@ -15,6 +15,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/opesun/goquery v0.0.0-20160908163916-0d77e43213cd
+	github.com/robfig/cron v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2
 	github.com/urfave/cli v1.22.2
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413

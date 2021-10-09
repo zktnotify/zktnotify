@@ -14,6 +14,7 @@ import (
 	"github.com/zktnotify/zktnotify/models"
 	"github.com/zktnotify/zktnotify/pkg/config"
 	"github.com/zktnotify/zktnotify/pkg/service"
+	"github.com/zktnotify/zktnotify/pkg/timer"
 	"github.com/zktnotify/zktnotify/pkg/version"
 	"github.com/zktnotify/zktnotify/pkg/zkt"
 	"github.com/zktnotify/zktnotify/router"
@@ -45,6 +46,7 @@ func GoFunc(f func() error) chan error {
 
 func actionStartServer(c *cli.Context) error {
 	ctx, canceled := context.WithCancel(context.Background())
+	defer canceled()
 
 	// TODO 不需要初始化多次
 
@@ -91,14 +93,15 @@ func actionStartServer(c *cli.Context) error {
 		go func() {
 			if err := svr.ListenAndServe(); err != nil {
 				log.Println(err)
-				canceled()
 				exit(0)
 			}
 		}()
 		log.Printf("server(%s) started, listening on %s\n",
 			version.Version(), config.Config.XServer.Addr)
+
+		timer.SetupTimer()
+
 		catchExitSignal(syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
-		canceled()
 	} else {
 		cmd := exec.Command(os.Args[0], "start", "-f")
 		cmd.Stdout = logFd

@@ -195,6 +195,10 @@ func cardTimeStatus(early, last *models.CardTime, ctime string) CardStatus {
 }
 
 func (dtn *Notification) shortURL() string {
+	if dtn.Status == typed.MonthDaily {
+		return config.Config.XServer.ShortURL.PrefixURL + "/user/monthdaily?userid=" + fmt.Sprint(dtn.UserID) + "&month=" + fmt.Sprint(int(time.Now().Month()))
+	}
+
 	if dtn.Status != typed.Remind {
 		return ""
 	}

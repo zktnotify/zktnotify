@@ -150,3 +150,24 @@ func GetTimeTag(uid uint64, start, end time.Time) (_ *models.TimeTagInfos, err e
 	}
 	return &infos, nil
 }
+
+func GetMonthTimeTag(user *models.User, drange [][2]string) (tags []models.TimeTag, err error) {
+	if !HasCookie(user.JobID, user.UserID) {
+		if err = Login(user.JobID, user.UserID, user.Password); err != nil {
+			return nil, fmt.Errorf("%s login failed: %v", user.JobID, err)
+		}
+	}
+	str2date := func(s string) time.Time {
+		t, _ := time.Parse("2006-01-02", s)
+		return t
+	}
+
+	for _, val := range drange {
+		mtag, err := GetTimeTag(user.UserID, str2date(val[0]), str2date(val[1]))
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, mtag.Rows...)
+	}
+	return tags, nil
+}
