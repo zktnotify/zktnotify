@@ -21,7 +21,7 @@ type MonthDaily struct {
 }
 
 func GetUserMonthDaily(uid uint64, month int) (*MonthDaily, error) {
-	rows, err := x.Where("status=0").Rows(MonthDaily{UserID: uid, Month: month})
+	rows, err := x.Where("status=0").Limit(0, 1).Rows(MonthDaily{UserID: uid, Month: month})
 	if err != nil {
 		return nil, err
 	}

@@ -37,16 +37,17 @@ func SendMonthDaily() {
 	}
 
 	for _, user := range users {
-		fmt.Println("send daily notify for", user.UserID)
 		if user.NotifyType != uint32(typed.WXPUSHER) {
 			continue
 		}
 
-		if _, err := models.GetUserMonthDaily(user.UserID, month); err != nil {
-			if err != sql.ErrNoRows {
-				log.Println("retrieve month daily failed:", err)
-				continue
-			}
+		dailies, err := models.GetUserMonthDaily(user.UserID, month)
+		if err != nil && err != sql.ErrNoRows {
+			log.Println("retrieve month daily failed:", err)
+			continue
+		}
+		if dailies != nil {
+			continue
 		}
 
 		msg := typed.Message{
@@ -64,8 +65,7 @@ func SendMonthDaily() {
 			continue
 		}
 
-		err := models.SaveUserMonthDaily(user.UserID, month, models.SenderTimer)
-		if err != nil {
+		if err = models.SaveUserMonthDaily(user.UserID, month, models.SenderTimer); err != nil {
 			log.Printf("save user(%d) month daily report failed:%v", user.UserID, err)
 		}
 	}
