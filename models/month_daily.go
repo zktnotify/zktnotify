@@ -21,18 +21,13 @@ type MonthDaily struct {
 }
 
 func GetUserMonthDaily(uid uint64, month int) (*MonthDaily, error) {
-	rows, err := x.Where("status=0").Limit(0, 1).Rows(MonthDaily{UserID: uid, Month: month})
+	var m = MonthDaily{UserID: uid, Month: month}
+	ok, err := x.Where("status=0").Limit(0, 1).Get(&m)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	daily := MonthDaily{}
-	for rows.Next() {
-		if err := rows.Scan(&daily); err != nil {
-			return nil, err
-		}
-		return &daily, nil
+	if ok {
+		return &m, nil
 	}
 	return nil, sql.ErrNoRows
 }
